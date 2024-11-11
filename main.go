@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
+	"github.com/PavlushaSource/Radar/custom_theme"
 	"image/color"
 	"math/rand/v2"
 	"time"
@@ -28,7 +32,7 @@ func show(app fyne.App) {
 	r.updateTime = time.Second
 
 	//backEnd := GenerateBackendCats(50000)
-	backEnd := []CatBackend{{X: 0, Y: 0, color: Red}}
+	backEnd := []CatBackend{{X: 0, Y: 0, color: Red}, {X: 10, Y: 10, color: Green}}
 	r.cats = r.CreateCats(backEnd)
 
 	ctx := context.Background()
@@ -44,13 +48,13 @@ func show(app fyne.App) {
 	window.Show()
 }
 
-func main() {
-	myApp := app.New()
-
-	show(myApp)
-
-	myApp.Run()
-}
+//func main() {
+//	myApp := app.New()
+//
+//	show(myApp)
+//
+//	myApp.Run()
+//}
 
 func GenerateBackendCats(count int) []CatBackend {
 	res := make([]CatBackend, count)
@@ -66,4 +70,92 @@ func GenerateBackendCats(count int) []CatBackend {
 		//res = append(res, CatBackend{X: float32(currX), Y: float32(currY)})
 	}
 	return res
+}
+
+//func main() {
+//	a := app.New()
+//	w := a.NewWindow("Hello World")
+//
+//	w.SetContent(widget.NewLabel("Hello World!"))
+//	w.Show()
+//	go func() {
+//		time.Sleep(1 * time.Second)
+//		w.Hide()
+//	}()
+//	w2 := a.NewWindow("Larger")
+//	w2.SetContent(widget.NewLabel("More content"))
+//	w2.Resize(fyne.NewSize(100, 100))
+//	w2.Show()
+//
+//	a.Run()
+//}
+
+//func main() {
+//	myApp := app.New()
+//	myWindow := myApp.NewWindow("Center Layout")
+//
+//	img := canvas.NewImageFromResource(theme.FyneLogo())
+//	img.FillMode = canvas.ImageFillOriginal
+//	text := canvas.NewText("Overlay", color.Black)
+//	content := container.New(layout.NewCenterLayout(), img, text)
+//
+//	myWindow.SetContent(content)
+//	myWindow.ShowAndRun()
+//}
+
+func main() {
+	myApp := app.New()
+	myApp.Settings().SetTheme(custom_theme.NewLightTheme())
+	myWindow := myApp.NewWindow("Form Layout")
+
+	secondWindow := myApp.NewWindow("HIHI")
+	secondWindow.SetContent(container.NewHBox(widget.NewLabel("HELLO MAN")))
+	secondWindow.Resize(fyne.NewSize(480, 480))
+
+	myWindow.Resize(fyne.NewSize(480, 480))
+	myWindow.SetContent(BuildMainMenu(myApp, myWindow, secondWindow))
+
+	myWindow.Show()
+	myApp.Run()
+}
+
+func BuildMainMenu(app fyne.App, firstWindow, secondWindow fyne.Window) fyne.CanvasObject {
+
+	calcType := widget.NewSelect([]string{"Option 1", "Option 2", "Option 3"}, func(s string) { fmt.Println("selected", s) })
+	calcType.PlaceHolder = "Выберите одно из предложенных"
+
+	top := widget.NewLabel("BLYADINA PRESENT")
+	top.Alignment = fyne.TextAlignCenter
+
+	topToolbar := widget.Toolbar{
+		Items: []widget.ToolbarItem{widget.NewToolbarAction(theme.HomeIcon(), func() {
+		})},
+	}
+
+	cfgUI := &widget.Form{}
+	cfgUI.Append("Select calc", calcType)
+	bg := canvas.NewRectangle(&color.NRGBA{R: 0, G: 0, B: 0x4d, A: 0xff})
+	_ = bg
+
+	startButton := widget.NewButtonWithIcon("Run", resourceCatIconWhiteSvg, func() {
+		firstWindow.Hide()
+		secondWindow.Show()
+
+		secondWindow.SetMaster()
+	})
+
+	//img := canvas.NewImageFromResource(resourceIconWhite())
+	//img.Resize(fyne.NewSize(200, 200))
+
+	SelectTheme := container.NewGridWithColumns(2,
+		widget.NewButton("Dark", func() {
+			fmt.Println("Dark")
+			app.Settings().SetTheme(custom_theme.NewDarkTheme())
+		}),
+		widget.NewButton("Light", func() {
+			fmt.Println("Light")
+			app.Settings().SetTheme(custom_theme.NewLightTheme())
+		}))
+
+	return container.NewBorder(container.NewHBox(&topToolbar, top), SelectTheme, nil, nil, container.NewCenter(container.NewVBox(cfgUI, startButton)))
 }

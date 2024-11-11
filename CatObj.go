@@ -19,7 +19,7 @@ type Radar struct {
 }
 
 func MoveToCenter(obj fyne.CanvasObject, sizeSquare float32) {
-	vector := fyne.Size{Width: -sizeSquare / 2, Height: -sizeSquare / 2}
+	vector := fyne.Size{Width: -sizeSquare * 1000 / 2, Height: -sizeSquare * 1000 / 2}
 
 	fmt.Println("VECTOR", vector)
 	obj.Move(obj.Position().Add(vector))
@@ -32,9 +32,10 @@ func (r *Radar) UpdateRadar() {
 	for _, cat := range r.cats {
 		_, _, _ = w, h, cat
 		fmt.Println("Size cat", cat.Size())
-		time.Sleep(time.Second * 3)
-		MoveToCenter(cat, defaultCatSize)
-		time.Sleep(time.Second * 3)
+		//time.Sleep(time.Second * 3)
+		//MoveToCenter(cat, defaultCatSize)
+		//time.Sleep(time.Second * 3)
+		//fyne.Scrollable()
 		//X := rand.Float32() * w
 		//Y := rand.Float32() * h
 		//fmt.Println(X, Y)
@@ -116,4 +117,8 @@ func (r *Radar) CreateCats(source []CatBackend) []fyne.CanvasObject {
 
 func resourceCat(color Color) fyne.Resource {
 	return resourceCatSvg
+}
+
+func resourceIconWhite() fyne.Resource {
+	return resourceCatIconWhiteSvg
 }
