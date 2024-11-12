@@ -104,31 +104,58 @@ func GenerateBackendCats(count int) []CatBackend {
 //}
 
 func main() {
-	myApp := app.New()
-	myApp.Settings().SetTheme(custom_theme.NewLightTheme())
-	myWindow := myApp.NewWindow("Form Layout")
+	App := app.New()
+	App.Settings().SetTheme(custom_theme.NewLightTheme())
 
-	secondWindow := myApp.NewWindow("HIHI")
+	//BuildUI(App)
+
+	myWindow := App.NewWindow("Form Layout")
+
+	secondWindow := App.NewWindow("HIHI")
 	secondWindow.SetContent(container.NewHBox(widget.NewLabel("HELLO MAN")))
-	secondWindow.Resize(fyne.NewSize(480, 480))
+	//secondWindow.SetFullScreen(true)
+	//secondWindow.Resize(fyne.NewSize(480, 480))
 
 	myWindow.Resize(fyne.NewSize(480, 480))
-	myWindow.SetContent(BuildMainMenu(myApp, myWindow, secondWindow))
+	myWindow.SetContent(BuildMainMenu(App, myWindow, secondWindow))
 
 	myWindow.Show()
-	myApp.Run()
+	App.Run()
 }
 
 func BuildMainMenu(app fyne.App, firstWindow, secondWindow fyne.Window) fyne.CanvasObject {
 
-	calcType := widget.NewSelect([]string{"Option 1", "Option 2", "Option 3"}, func(s string) { fmt.Println("selected", s) })
+	calcType := widget.NewSelect([]string{"Option 1", "Option 2", "Option 3"}, func(s string) {
+		switch s {
+		case "Option 1":
+			firstWindow.SetFullScreen(true)
+		}
+
+		fmt.Println("selected", s)
+	})
 	calcType.PlaceHolder = "Выберите одно из предложенных"
 
 	top := widget.NewLabel("BLYADINA PRESENT")
-	top.Alignment = fyne.TextAlignCenter
+	top.Alignment = fyne.TextAlignTrailing
 
+	LightThemeFlag := false
+	FullScreenMode := false
 	topToolbar := widget.Toolbar{
 		Items: []widget.ToolbarItem{widget.NewToolbarAction(theme.HomeIcon(), func() {
+		}), widget.NewToolbarAction(theme.ColorPaletteIcon(), func() {
+			if !LightThemeFlag {
+				app.Settings().SetTheme(custom_theme.NewDarkTheme())
+			} else {
+				app.Settings().SetTheme(custom_theme.NewLightTheme())
+			}
+			LightThemeFlag = !LightThemeFlag
+		}), widget.NewToolbarAction(theme.ViewFullScreenIcon(), func() {
+			if !FullScreenMode {
+				firstWindow.SetFullScreen(true)
+			} else {
+				firstWindow.SetFullScreen(false)
+			}
+			FullScreenMode = !FullScreenMode
 		})},
 	}
 
@@ -157,5 +184,5 @@ func BuildMainMenu(app fyne.App, firstWindow, secondWindow fyne.Window) fyne.Can
 			app.Settings().SetTheme(custom_theme.NewLightTheme())
 		}))
 
-	return container.NewBorder(container.NewHBox(&topToolbar, top), SelectTheme, nil, nil, container.NewCenter(container.NewVBox(cfgUI, startButton)))
+	return container.NewBorder(container.NewVBox(&topToolbar, top), SelectTheme, nil, nil, container.NewCenter(container.NewVBox(cfgUI, startButton)))
 }
