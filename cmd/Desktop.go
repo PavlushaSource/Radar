@@ -21,8 +21,6 @@ func main() {
 	UIConfig := config.NewUIConfig()
 	BackendConfig := config.NewBackendConfig()
 
-	_ = BackendConfig
-
 	toolbarCreate := UI.CreateToolbarFunction(App, mainWindow, runWindow, &UIConfig, ctx)
 	configChoice := UI.CreateConfigChoiceFunction(mainWindow, runWindow, &BackendConfig, &UIConfig, ctx)
 
@@ -36,3 +34,27 @@ func main() {
 	mainWindow.Show()
 	App.Run()
 }
+
+//func main() {
+//	myApp := app.New()
+//	myWindow := myApp.NewWindow("Form Widget")
+//
+//	entry := widget.NewEntry()
+//	textArea := widget.NewMultiLineEntry()
+//
+//	form := &widget.Form{
+//		Items: []*widget.FormItem{ // we can specify items in the constructor
+//			{Text: "Entry", Widget: entry}},
+//		OnSubmit: func() { // optional, handle form submission
+//			log.Println("Form submitted:", entry.Text)
+//			log.Println("multiline:", textArea.Text)
+//			myWindow.Close()
+//		},
+//	}
+//
+//	// we can also append items
+//	form.Append("Text", textArea)
+//
+//	myWindow.SetContent(form)
+//	myWindow.ShowAndRun()
+//}

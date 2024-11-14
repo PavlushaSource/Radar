@@ -20,7 +20,7 @@ type BackendConfig struct {
 
 func NewBackendConfig() BackendConfig {
 	return BackendConfig{
-		DistanceType: Euclidean,
+		DistanceType: SkipZero,
 		UpdateTime:   time.Second * 1,
 		CountCats:    25,
 		AngryRadius:  100,

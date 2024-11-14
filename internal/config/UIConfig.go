@@ -3,8 +3,8 @@ package config
 import "fyne.io/fyne/v2"
 
 const (
-	WindowH = 480
-	WindowW = 480
+	WindowH = 1920
+	WindowW = 1080
 	CatSize = 10
 )
 
