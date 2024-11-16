@@ -1,4 +1,4 @@
-package main
+package runner
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 
 type Radar struct {
 	widget.BaseWidget
-	cats       []fyne.CanvasObject
-	updateTime time.Duration
-	catSize    fyne.Size
+	Cats       []fyne.CanvasObject
+	UpdateTime time.Duration
+	CatSize    fyne.Size
 
-	bg *canvas.Rectangle
+	Bg *canvas.Rectangle
 }
 
 func MoveToCenter(obj fyne.CanvasObject, sizeSquare float32) {
@@ -26,10 +26,10 @@ func MoveToCenter(obj fyne.CanvasObject, sizeSquare float32) {
 }
 
 func (r *Radar) UpdateRadar() {
-	w, h := r.bg.Size().Width, r.bg.Size().Height
+	w, h := r.Bg.Size().Width, r.Bg.Size().Height
 
 	//fmt.Println(w, h)
-	for _, cat := range r.cats {
+	for _, cat := range r.Cats {
 		_, _, _ = w, h, cat
 		fmt.Println("Size cat", cat.Size())
 		//time.Sleep(time.Second * 3)
@@ -54,9 +54,9 @@ func (r *Radar) Run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(r.updateTime):
+		case <-time.After(r.UpdateTime):
 			r.UpdateRadar()
-			r.bg.Refresh()
+			r.Bg.Refresh()
 		}
 	}
 }
@@ -79,11 +79,11 @@ func (r RadarRender) Layout(size fyne.Size) {
 }
 
 func (r RadarRender) MinSize() fyne.Size {
-	return r.r.catSize
+	return r.r.CatSize
 }
 
 func (r RadarRender) Objects() []fyne.CanvasObject {
-	return r.r.cats
+	return r.r.Cats
 }
 
 func (r RadarRender) Refresh() {
@@ -93,21 +93,9 @@ func (r *Radar) CreateCats(source []CatBackend) []fyne.CanvasObject {
 	res := make([]fyne.CanvasObject, 0)
 
 	for _, s := range source {
-		//var resource fyne.Resource
-		//switch s.color {
-		//case Red:
-		//	resource = resourceCatSvg
-		//case Green:
-		//	resource = resourceCatSvg
-		//case Blue:
-		//	resource = resourceCatSvg
-		//default:
-		//	panic("Unsupported color")
-		//}
-
-		img := canvas.NewImageFromResource(resourceCat(Blue))
+		img := canvas.NewImageFromResource(resourceCat(s.Color))
 		img.Move(fyne.Position{X: s.X, Y: s.Y})
-		img.Resize(r.catSize)
+		img.Resize(r.CatSize)
 
 		res = append(res, img)
 	}
@@ -116,9 +104,14 @@ func (r *Radar) CreateCats(source []CatBackend) []fyne.CanvasObject {
 }
 
 func resourceCat(color Color) fyne.Resource {
-	return resourceCatSvg
-}
-
-func resourceIconWhite() fyne.Resource {
-	return resourceCatIconWhiteSvg
+	switch color {
+	case Red:
+		return ResourceCatRedSvg
+	case Purple:
+		return ResourceCatPurpleSvg
+	case Blue:
+		return ResourceCatBlueSvg
+	default:
+		panic("resourceCat: unknown color")
+	}
 }
