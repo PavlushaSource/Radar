@@ -63,42 +63,23 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config.BackendCo
 
 				if resErr != nil {
 					dialog.ShowError(resErr, w1)
-					fmt.Println(resErr)
 				} else {
-					fmt.Println("No errors in config")
-					//w1.SetFullScreen(false)
-					//configUI.FullScreenMode = false
-					//w1.Hide()
-					//
-					//w2.SetMaster()
-					//w2.CenterOnScreen()
-					//w2.Resize(configUI.WindowSize)
-					//w2.Show()
-					//
-					//configUI.InMainMenu = false
+					w1.SetFullScreen(false)
+					configUI.FullScreenMode = false
+					w1.Hide()
+
+					w2.SetMaster()
+					w2.CenterOnScreen()
+					w2.Resize(configUI.WindowSize)
+
+					w2.Show()
+
+					configUI.InMainMenu = false
 				}
 			},
 			SubmitText: "Run",
 			CancelText: "Reset",
 		}
-
-		//form.Append("Distance type", selectDistanceType)
-
-		runButton := widget.NewButton("Run", func() {
-			w1.SetFullScreen(false)
-			configUI.FullScreenMode = false
-			w1.Hide()
-
-			w2.SetMaster()
-			w2.CenterOnScreen()
-			w2.Resize(configUI.WindowSize)
-			w2.Show()
-
-			configUI.InMainMenu = false
-		})
-
-		// TODO Delete this
-		_ = runButton
 
 		return container.NewCenter(form)
 	}
