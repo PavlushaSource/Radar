@@ -16,4 +16,4 @@ debug:
 	go run -tags debug ./cmd/Desktop.go
 
 clear:
-	@rm task
+	@rm app

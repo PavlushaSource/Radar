@@ -9,8 +9,7 @@ import (
 type DistanceType uint8
 
 const (
-	SkipZero DistanceType = iota
-	Euclidean
+	Euclidean DistanceType = iota
 	Manhattan
 	Curvilinear
 )
