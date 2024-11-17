@@ -50,7 +50,7 @@ func (engine *engine) processCatNeighbours(idx int64) {
 	engine.processNeighbourCell(idx, cell, engine.tryGetLeftCell)
 	engine.processNeighbourCell(idx, cell, engine.tryGetRightCell)
 	engine.processNeighbourCell(idx, cell, engine.tryGetUpLeftCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetUpRighrCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetUpRightCell)
 	engine.processNeighbourCell(idx, cell, engine.tryGetDownLeftCell)
 	engine.processNeighbourCell(idx, cell, engine.tryGetDownRightCell)
 }
