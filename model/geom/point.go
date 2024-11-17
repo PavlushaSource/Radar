@@ -3,7 +3,7 @@ package geom
 type Point interface {
 	X() float64
 	Y() float64
-	Copy() Point
+	Copy(dst Point)
 	set(x float64, y float64)
 }
 
@@ -20,11 +20,8 @@ func (point *point) Y() float64 {
 	return point.y
 }
 
-func (original *point) Copy() Point {
-	clon := new(point)
-	clon.x = original.x
-	clon.y = original.y
-	return clon
+func (point *point) Copy(dst Point) {
+	dst.set(point.x, point.y)
 }
 
 func (point *point) set(x float64, y float64) {
