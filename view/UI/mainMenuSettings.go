@@ -7,11 +7,22 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	config2 "github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 )
 
-func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config2.BackendConfig, configUI *config2.UIConfig, ctx context.Context) func() fyne.CanvasObject {
+var convertStringToDistance = map[string]config.DistanceType{
+	"Euclidean":   config.Euclidean,
+	"Manhattan":   config.Manhattan,
+	"Curvilinear": config.Curvilinear,
+}
+
+const (
+	runText   = "Run"
+	resetText = "Reset"
+)
+
+func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config.BackendConfig, configUI *config.UIConfig, ctx context.Context) func() fyne.CanvasObject {
 	return func() fyne.CanvasObject {
 
 		catCount := widget.NewEntry()
@@ -27,19 +38,13 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config2.BackendC
 		angryRadius.SetText(angryRadiusDefaultValue)
 
 		selectDistanceType := widget.NewSelect([]string{"Euclidean", "Manhattan", "Curvilinear"}, func(s string) {
-			switch s {
-			case "Euclidean":
-				configBack.DistanceType = config2.Euclidean
-			case "Manhattan":
-				configBack.DistanceType = config2.Manhattan
-			case "Curvilinear":
-				configBack.DistanceType = config2.Curvilinear
-			}
+			configBack.DistanceType = convertStringToDistance[s]
 		})
 		selectDistanceType.PlaceHolder = ""
 		selectDistanceTypeDefaultValue := "Euclidean"
 		selectDistanceType.SetSelected(selectDistanceTypeDefaultValue)
 
+		// TODO: mb move every variant to own constant entity
 		form := &widget.Form{
 			Items: []*widget.FormItem{
 				{Text: "Count cats", Widget: catCount, HintText: "enter a positive number up to 5 * 10^4"},
@@ -77,8 +82,8 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config2.BackendC
 					configUI.InMainMenu = false
 				}
 			},
-			SubmitText: "Run",
-			CancelText: "Reset",
+			SubmitText: runText,
+			CancelText: resetText,
 		}
 
 		return container.NewCenter(form)

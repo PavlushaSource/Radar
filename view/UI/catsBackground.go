@@ -16,6 +16,7 @@ type CatsBoard struct {
 	cats              []fyne.CanvasObject
 }
 
+// TODO: make opportunity to call scale not only by keyboard
 func (c *CatsBoard) Scrolled(event *fyne.ScrollEvent) {
 	//fmt.Println(event.Scrolled)
 	//fmt.Println(event.Position)
