@@ -10,8 +10,8 @@ import (
 
 func main() {
 
-	g := geom.NewSimpleGeom(1080, 1920, nil, geom.EuclideanDistance)
-	eng := engine.NewEngine(15, 30, 100, g)
+	g := geom.NewSimpleGeom(1080, 1920, make([]geom.Barrier, 0), geom.EuclideanDistance)
+	eng := engine.NewEngine(15, 30, 50000, g)
 
 	start := time.Now()
 	eng.Run()
