@@ -17,8 +17,8 @@ func numRows(height float64, radius float64) int64 {
 }
 
 func (engine *engine) cell(point geom.Point) int64 {
-	column := int64(math.Ceil(point.X() / engine.radius))
-	row := int64(math.Ceil(point.Y() / engine.radius))
+	column := int64(math.Trunc(point.X() / engine.radius))
+	row := int64(math.Trunc(point.Y() / engine.radius))
 	return column*engine.numRows + row
 }
 
