@@ -13,14 +13,14 @@ type runner struct {
 	engine     Engine
 }
 
-func CreateRunner(engine Engine, bufferSize int64) Runnable {
-	return &Runner{
+func NewRunner(engine Engine, bufferSize int64) Runner {
+	return &runner{
 		engine:     engine,
 		bufferSize: bufferSize,
 	}
 }
 
-func (r *Runner) Run(ctx context.Context) <-chan State {
+func (r *runner) Run(ctx context.Context) <-chan State {
 	resCh := make(chan State, r.bufferSize)
 
 	go func() {
