@@ -15,7 +15,8 @@ type Radar struct {
 	UpdateTime time.Duration
 	CatSize    fyne.Size
 
-	Bg *canvas.Rectangle
+	window fyne.Window
+	Bg     *canvas.Rectangle
 }
 
 func MoveToCenter(obj fyne.CanvasObject, sizeSquare float32) {
@@ -31,7 +32,8 @@ func (r *Radar) UpdateRadar() {
 	//fmt.Println(w, h)
 	for _, cat := range r.Cats {
 		_, _, _ = w, h, cat
-		fmt.Println("Size cat", cat.Size())
+
+		//fmt.Println("Size cat", cat.Size())
 		//time.Sleep(time.Second * 3)
 		//MoveToCenter(cat, defaultCatSize)
 		//time.Sleep(time.Second * 3)
@@ -50,12 +52,14 @@ func (r *Radar) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (r *Radar) Run(ctx context.Context) {
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-time.After(r.UpdateTime):
 			r.UpdateRadar()
+
 			r.Bg.Refresh()
 		}
 	}
@@ -76,10 +80,11 @@ func (r RadarRender) Destroy() {
 }
 
 func (r RadarRender) Layout(size fyne.Size) {
+
 }
 
 func (r RadarRender) MinSize() fyne.Size {
-	return r.r.CatSize
+	return r.r.Bg.MinSize()
 }
 
 func (r RadarRender) Objects() []fyne.CanvasObject {
@@ -87,6 +92,7 @@ func (r RadarRender) Objects() []fyne.CanvasObject {
 }
 
 func (r RadarRender) Refresh() {
+	r.r.Refresh()
 }
 
 func (r *Radar) CreateCats(source []CatBackend) []fyne.CanvasObject {
