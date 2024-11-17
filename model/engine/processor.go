@@ -1,8 +1,6 @@
 package engine
 
-import (
-	"sync"
-)
+import "sync"
 
 func (engine *engine) moveCats() {
 	for i, cat := range engine.state.Cats() {
@@ -74,20 +72,21 @@ func (engine *engine) proccessPair(cat int64, neighbour int64) {
 		cats[cat].setStatus(Fighting)
 		cats[neighbour].setStatus(Fighting)
 
-		cats[cat].setFightings(append(cats[cat].Fightings(), neighbour))
+		// cats[cat].setFightings(append(cats[cat].Fightings(), neighbour))
 	} else if dist <= engine.state.RadiusHiss() {
 		if engine.rndCores[cat].Float64() <= hissingProbability(dist) {
 			cats[cat].setHissing(true)
 			cats[neighbour].setHissing(true)
 
-			engine.hissings[cat][neighbour] = true
+			// engine.hissings[cat][neighbour] = true
 		}
 
-		cats[cat].setHissings(append(cats[cat].Hissings(), neighbour))
+		// cats[cat].setHissings(append(cats[cat].Hissings(), neighbour))
 	}
 }
 
 func (engine *engine) postprocessCatHissings(idx int64) {
+	return
 	cat := engine.state.Cats()[idx]
 	if !cat.isHissing() {
 		return
