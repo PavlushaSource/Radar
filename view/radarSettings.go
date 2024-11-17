@@ -1,4 +1,4 @@
-package config
+package view
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ const (
 	Vector
 )
 
-type BackendSettings struct {
+type RadarSettings struct {
 	DistanceType                  DistanceType
 	UpdateTime                    time.Duration
 	CountCats                     int
@@ -30,8 +30,8 @@ type BackendSettings struct {
 	GeometryType                  GeometryType
 }
 
-func NewBackendConfig() BackendSettings {
-	return BackendSettings{
+func NewRadarSettings() RadarSettings {
+	return RadarSettings{
 		DistanceType:   Euclidean,
 		UpdateTime:     time.Millisecond * 2000,
 		CountCats:      25,
@@ -42,7 +42,7 @@ func NewBackendConfig() BackendSettings {
 	}
 }
 
-func (c *BackendSettings) SetCountCats(s string) error {
+func (c *RadarSettings) SetCountCats(s string) error {
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return fmt.Errorf("invalid convert count %s to integer: %w", s, err)
@@ -56,7 +56,7 @@ func (c *BackendSettings) SetCountCats(s string) error {
 	return nil
 }
 
-func (c *BackendSettings) SetUpdateTime(s string) error {
+func (c *RadarSettings) SetUpdateTime(s string) error {
 	updateTime, err := time.ParseDuration(s + "s")
 	if err != nil {
 		return fmt.Errorf("invalid update time %s: %w", s, err)
@@ -70,7 +70,7 @@ func (c *BackendSettings) SetUpdateTime(s string) error {
 	return nil
 }
 
-func (c *BackendSettings) SetFightingRadius(s string) error {
+func (c *RadarSettings) SetFightingRadius(s string) error {
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
@@ -83,7 +83,7 @@ func (c *BackendSettings) SetFightingRadius(s string) error {
 	return nil
 }
 
-func (c *BackendSettings) SetHissingRadius(s string) error {
+func (c *RadarSettings) SetHissingRadius(s string) error {
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
