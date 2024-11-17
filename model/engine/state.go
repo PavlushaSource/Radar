@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"sync"
-
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
@@ -85,26 +83,21 @@ func (state *state) setRadiusFight(radiusFight float64) {
 }
 
 func (state *state) copyCatsFrom(src []Cat) {
-	var wg sync.WaitGroup
-
 	state.cats = state.cats[:len(src)]
 
-	for i := range src {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
+	runBlocking(
+		&state.cats,
+		func(i int, _ Cat) {
 			src[i].Copy(state.cats[i])
-		}()
-	}
-
-	wg.Wait()
+		})
 }
 
 func (state *state) clean() {
-	for _, cat := range state.cats {
-		cat.clean()
-	}
+	runBlocking(
+		&state.cats,
+		func(_ int, cat Cat) {
+			cat.clean()
+		})
 }
 
 func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int64, geom geom.Geom) State {
