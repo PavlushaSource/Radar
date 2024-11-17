@@ -7,7 +7,7 @@ import (
 	"math/rand/v2"
 )
 
-func CreateCats(source []domain.CatBackend, catSize fyne.Size) []fyne.CanvasObject {
+func CreateCats(source []domain.CatUI, catSize fyne.Size) []fyne.CanvasObject {
 	res := make([]fyne.CanvasObject, 0)
 
 	for _, s := range source {
@@ -21,8 +21,8 @@ func CreateCats(source []domain.CatBackend, catSize fyne.Size) []fyne.CanvasObje
 	return res
 }
 
-func GenerateBackendCats(count int) []domain.CatBackend {
-	res := make([]domain.CatBackend, count)
+func GenerateBackendCats(count int) []domain.CatUI {
+	res := make([]domain.CatUI, count)
 
 	minX, maxX := 0, 1920
 	minY, maxY := 0, 1080
@@ -31,8 +31,8 @@ func GenerateBackendCats(count int) []domain.CatBackend {
 		currX := rand.IntN(maxX-minX) + minX
 		currY := rand.IntN(maxY-minY) + minY
 
-		res[i] = domain.CatBackend{X: float32(currX), Y: float32(currY)}
-		res = append(res, domain.CatBackend{X: float32(currX), Y: float32(currY)})
+		res[i] = domain.CatUI{X: float32(currX), Y: float32(currY)}
+		res = append(res, domain.CatUI{X: float32(currX), Y: float32(currY)})
 	}
 	return res
 }

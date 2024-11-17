@@ -1,7 +1,7 @@
 package domain
 
 // TODO: Refactoring after chaining with backend model
-type CatBackend struct {
+type CatUI struct {
 	X     float32
 	Y     float32
 	Color Color
