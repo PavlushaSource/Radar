@@ -22,6 +22,8 @@ type State interface {
 
 	copyCatsFrom(src []Cat)
 
+	catsRunBlocking(action[Cat])
+
 	clean()
 }
 
@@ -96,9 +98,16 @@ func (state *state) copyCatsFrom(src []Cat) {
 		})
 }
 
-func (state *state) clean() {
+func (state *state) catsRunBlocking(action action[Cat]) {
 	runBlocking(
 		&state.cats,
+		func(i int, cat Cat) {
+			action(i, cat)
+		})
+}
+
+func (state *state) clean() {
+	state.catsRunBlocking(
 		func(_ int, cat Cat) {
 			cat.clean()
 		})
