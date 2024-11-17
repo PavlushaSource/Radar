@@ -11,7 +11,7 @@ type State interface {
 	RadiusFight() float64
 
 	NumCats() int
-	Cats() []Cat
+	CatsElementAt(idx int) Cat
 
 	Copy(dst State)
 
@@ -51,6 +51,10 @@ func (state *state) RadiusFight() float64 {
 
 func (state *state) NumCats() int {
 	return len(state.cats)
+}
+
+func (state *state) CatsElementAt(idx int) Cat {
+	return state.cats[idx]
 }
 
 func (state *state) Cats() []Cat {
@@ -100,7 +104,7 @@ func (state *state) clean() {
 		})
 }
 
-func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int64, geom geom.Geom) State {
+func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) State {
 	state := new(state)
 
 	state.height = height
@@ -109,7 +113,7 @@ func newState(height float64, width float64, radiusFight float64, radiusHiss flo
 	state.radiusHiss = radiusHiss
 
 	state.cats = make([]Cat, 0, numCats)
-	for i := int64(0); i < numCats; i++ {
+	for i := 0; i < numCats; i++ {
 		state.cats = append(state.cats, newCat(geom.NewPoint(), numCats))
 	}
 
