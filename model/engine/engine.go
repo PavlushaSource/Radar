@@ -24,12 +24,11 @@ type engine struct {
 	hissings map[int64]bool
 }
 
-// TODO: add process logic
 func (engine *engine) Run() State {
 	engine.clean()
 
-	// engine.moveCats()
-	// engine.processCatsNeighbours()
+	engine.moveCats()
+	engine.processCatsNeighbours()
 
 	return engine.state.Copy()
 }
