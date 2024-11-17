@@ -84,7 +84,7 @@ func (engine *engine) tryGetUpLeftCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetUpRighrCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetUpRightCell(cell int64) (bool, int64) {
 	column := cell/engine.numRows + 1
 	row := cell%engine.numRows + 1
 
