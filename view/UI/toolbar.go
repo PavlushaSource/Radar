@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/PavlushaSource/Radar/view/config"
-	custom_theme2 "github.com/PavlushaSource/Radar/view/customTheme"
+	"github.com/PavlushaSource/Radar/view/customTheme"
 )
 
 func CreateToolbarFunction(a fyne.App, w1, w2 fyne.Window, Config *config.UIConfig, ctx context.Context) func() fyne.CanvasObject {
@@ -33,9 +33,9 @@ func CreateToolbarFunction(a fyne.App, w1, w2 fyne.Window, Config *config.UIConf
 				}
 			}), widget.NewToolbarAction(theme.ColorPaletteIcon(), func() {
 				if Config.LightThemeFlag {
-					a.Settings().SetTheme(custom_theme2.NewDarkTheme())
+					a.Settings().SetTheme(customTheme.NewDarkTheme())
 				} else {
-					a.Settings().SetTheme(custom_theme2.NewLightTheme())
+					a.Settings().SetTheme(customTheme.NewLightTheme())
 				}
 				Config.LightThemeFlag = !Config.LightThemeFlag
 			}), widget.NewToolbarAction(theme.ViewFullScreenIcon(), func() {
