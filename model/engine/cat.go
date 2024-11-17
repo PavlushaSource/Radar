@@ -128,7 +128,7 @@ func (cat *cat) clean() {
 	cat._fightings = cat._fightings[:0]
 }
 
-func newCat(point geom.Point, numCats int64) Cat {
+func newCat(point geom.Point, numCats int) Cat {
 	cat := new(cat)
 
 	cat._status = Calm

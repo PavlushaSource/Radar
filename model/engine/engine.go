@@ -11,7 +11,8 @@ type Engine interface {
 }
 
 type engine struct {
-	state  State
+	state State
+
 	geom   geom.Geom
 	radius float64
 
@@ -19,7 +20,7 @@ type engine struct {
 
 	numColumns int64
 	numRows    int64
-	cells      [][]int64
+	cells      [][]int
 
 	hissings [][]bool
 }
@@ -34,7 +35,7 @@ func (engine *engine) Run() State {
 	return engine.state
 }
 
-func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom.Geom) Engine {
+func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) Engine {
 	engine := new(engine)
 
 	engine.geom = geom
@@ -42,21 +43,21 @@ func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom
 	engine.radius = radiusHiss
 
 	engine.rndCores = make([]*rand.Rand, 0, numCats)
-	for i := int64(0); i < numCats; i++ {
+	for i := 0; i < numCats; i++ {
 		engine.rndCores = append(engine.rndCores, newRndCore())
 	}
 
 	engine.numColumns = numColumns(geom.Width(), radiusHiss)
 	engine.numRows = numRows(geom.Height(), radiusHiss)
 	numCells := engine.numColumns * engine.numRows
-	engine.cells = make([][]int64, 0, numCells)
+	engine.cells = make([][]int, 0, numCells)
 
 	for i := int64(0); i < numCells; i++ {
-		engine.cells = append(engine.cells, make([]int64, 0, numCats))
+		engine.cells = append(engine.cells, make([]int, 0, numCats))
 	}
 
 	engine.hissings = make([][]bool, 0, numCats)
-	for i := int64(0); i < numCats; i++ {
+	for i := 0; i < numCats; i++ {
 		engine.hissings = append(engine.hissings, make([]bool, numCats))
 	}
 
@@ -66,11 +67,11 @@ func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom
 func (engine *engine) clean() {
 	for i := range engine.cells {
 		capacity := cap(engine.cells[i])
-		engine.cells[i] = make([]int64, 0, capacity)
+		engine.cells[i] = make([]int, 0, capacity)
 	}
 
 	engine.hissings = make([][]bool, 0, engine.state.NumCats())
-	for i := int64(0); i < engine.state.NumCats(); i++ {
+	for i := 0; i < engine.state.NumCats(); i++ {
 		engine.hissings = append(engine.hissings, make([]bool, engine.state.NumCats()))
 	}
 
