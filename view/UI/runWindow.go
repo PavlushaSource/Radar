@@ -12,7 +12,7 @@ import (
 
 const scaleRatio = 1.1
 
-func CreateContentRunWindow(w1, w2 fyne.Window, backConfig *config.BackendConfig, UIConfig *config.UIConfig, ctx context.Context) fyne.CanvasObject {
+func CreateContentRunWindow(w1, w2 fyne.Window, backConfig *config.BackendSettings, UIConfig *config.UIConfig, ctx context.Context) fyne.CanvasObject {
 	//backEnd := GenerateBackendCats(50000)
 	backEnd := []domain.CatBackend{{X: 0, Y: 0, Color: domain.Red}, {X: 100, Y: 100, Color: domain.Purple}, {X: 1000, Y: 100, Color: domain.Blue}}
 	Cats := utils.CreateCats(backEnd, UIConfig.CatSize)
@@ -41,7 +41,7 @@ func CreateContentRunWindow(w1, w2 fyne.Window, backConfig *config.BackendConfig
 }
 
 type CatsLayout struct {
-	BackendConfig *config.BackendConfig
+	BackendConfig *config.BackendSettings
 	UIConfig      *config.UIConfig
 	Cats          []fyne.CanvasObject
 

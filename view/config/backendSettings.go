@@ -14,23 +14,24 @@ const (
 	Curvilinear
 )
 
-type BackendConfig struct {
-	DistanceType DistanceType
-	UpdateTime   time.Duration
-	CountCats    int
-	AngryRadius  float64
+type BackendSettings struct {
+	DistanceType                  DistanceType
+	UpdateTime                    time.Duration
+	CountCats                     int
+	FightingRadius, HissingRadius float64
 }
 
-func NewBackendConfig() BackendConfig {
-	return BackendConfig{
-		DistanceType: Euclidean,
-		UpdateTime:   time.Millisecond * 2000,
-		CountCats:    25,
-		AngryRadius:  100,
+func NewBackendConfig() BackendSettings {
+	return BackendSettings{
+		DistanceType:   Euclidean,
+		UpdateTime:     time.Millisecond * 2000,
+		CountCats:      25,
+		FightingRadius: 100,
+		HissingRadius:  200,
 	}
 }
 
-func (c *BackendConfig) SetCountCats(s string) error {
+func (c *BackendSettings) SetCountCats(s string) error {
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return fmt.Errorf("invalid convert count %s to integer: %w", s, err)
@@ -44,7 +45,7 @@ func (c *BackendConfig) SetCountCats(s string) error {
 	return nil
 }
 
-func (c *BackendConfig) SetUpdateTime(s string) error {
+func (c *BackendSettings) SetUpdateTime(s string) error {
 	updateTime, err := time.ParseDuration(s + "s")
 	if err != nil {
 		return fmt.Errorf("invalid update time %s: %w", s, err)
@@ -58,7 +59,7 @@ func (c *BackendConfig) SetUpdateTime(s string) error {
 	return nil
 }
 
-func (c *BackendConfig) SetAngryRadius(s string) error {
+func (c *BackendSettings) SetFightingRadius(s string) error {
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
@@ -67,6 +68,19 @@ func (c *BackendConfig) SetAngryRadius(s string) error {
 		return fmt.Errorf("radius must be greater than zero")
 	}
 
-	c.AngryRadius = r
+	c.FightingRadius = r
+	return nil
+}
+
+func (c *BackendSettings) SetHissingRadius(s string) error {
+	r, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
+	}
+	if r <= 0 {
+		return fmt.Errorf("radius must be greater than zero")
+	}
+
+	c.HissingRadius = r
 	return nil
 }
