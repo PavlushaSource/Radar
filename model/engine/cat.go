@@ -104,10 +104,10 @@ func (cat *cat) clean() {
 	cat.status = Calm
 	cat.hissing = false
 
-	capacity := cap(cat.hissings)
-	cat.hissings = make([]int64, 0, capacity)
-	capacity = cap(cat.fightings)
-	cat.fightings = make([]int64, 0, capacity)
+	//capacity := cap(cat.hissings)
+	cat.hissings = cat.hissings[:0]
+	//capacity = cap(cat.fightings)
+	cat.fightings = cat.fightings[:0]
 }
 
 func newCat(point geom.Point, numCats int64) Cat {

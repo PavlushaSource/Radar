@@ -1,6 +1,9 @@
 package engine
 
-import "github.com/PavlushaSource/Radar/model/geom"
+import (
+	"github.com/PavlushaSource/Radar/model/geom"
+	"sync"
+)
 
 type State interface {
 	Height() float64
@@ -64,9 +67,16 @@ func (original *state) Copy() State {
 }
 
 func (state *state) clean() {
+	wg := sync.WaitGroup{}
+
 	for _, cat := range state.cats {
-		cat.clean()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cat.clean()
+		}()
 	}
+	wg.Wait()
 }
 
 func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int64, geom geom.Geom) State {
