@@ -76,7 +76,7 @@ func (engine *engine) proccessPair(cat int64, neighbour int64) {
 
 		cats[cat].setFightings(append(cats[cat].Fightings(), neighbour))
 	} else if dist <= engine.state.RadiusHiss() {
-		if engine.rndCore.Float64() <= hissingProbability(dist) {
+		if engine.rndCores[cat].Float64() <= hissingProbability(dist) {
 			cats[cat].setHissing(true)
 			cats[neighbour].setHissing(true)
 
