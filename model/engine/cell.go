@@ -6,6 +6,8 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
+const cellDefault int64 = -1
+
 func numColumns(width float64, radius float64) int64 {
 	return int64(math.Ceil(width / radius))
 }
@@ -20,39 +22,92 @@ func (engine *engine) cell(point geom.Point) int64 {
 	return column*engine.numRows + row
 }
 
-// TODO: implemet cell navigation
-func (engine *engine) tryGetUp(cell int64) int64 {
-	// column := cell / engine.numRows
-	// row := cell % engine.numRows
-
-	// if (row + 1) <
-	return int64(0)
+func (engine *engine) checkCellColumnRow(column int64, row int64) bool {
+	if 0 >= row || row >= engine.numRows {
+		return false
+	}
+	if 0 >= column || column >= engine.numColumns {
+		return false
+	}
+	return true
 }
 
-func (engine *engine) tryGetDown(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetUpCell(cell int64) (bool, int64) {
+	column := cell / engine.numRows
+	row := cell%engine.numRows + 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetLeft(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetDownCell(cell int64) (bool, int64) {
+	column := cell / engine.numRows
+	row := cell%engine.numRows - 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetRight(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetLeftCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows - 1
+	row := cell % engine.numRows
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetUpLeft(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetRightCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows + 1
+	row := cell % engine.numRows
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetUpRighr(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetUpLeftCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows - 1
+	row := cell%engine.numRows + 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetDownLeft(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetUpRighrCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows + 1
+	row := cell%engine.numRows + 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetDownRight(cell int64) int64 {
-	return int64(0)
+func (engine *engine) tryGetDownLeftCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows - 1
+	row := cell%engine.numRows - 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
+}
+
+func (engine *engine) tryGetDownRightCell(cell int64) (bool, int64) {
+	column := cell/engine.numRows + 1
+	row := cell%engine.numRows - 1
+
+	if !engine.checkCellColumnRow(column, row) {
+		return false, cellDefault
+	}
+	return true, column*engine.numRows + row
 }
