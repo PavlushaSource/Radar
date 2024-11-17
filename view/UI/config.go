@@ -7,11 +7,11 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/PavlushaSource/Radar/internal/config"
-	"github.com/PavlushaSource/Radar/internal/utils"
+	config2 "github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/utils"
 )
 
-func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config.BackendConfig, configUI *config.UIConfig, ctx context.Context) func() fyne.CanvasObject {
+func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config2.BackendConfig, configUI *config2.UIConfig, ctx context.Context) func() fyne.CanvasObject {
 	return func() fyne.CanvasObject {
 
 		catCount := widget.NewEntry()
@@ -29,11 +29,11 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, configBack *config.BackendCo
 		selectDistanceType := widget.NewSelect([]string{"Euclidean", "Manhattan", "Curvilinear"}, func(s string) {
 			switch s {
 			case "Euclidean":
-				configBack.DistanceType = config.Euclidean
+				configBack.DistanceType = config2.Euclidean
 			case "Manhattan":
-				configBack.DistanceType = config.Manhattan
+				configBack.DistanceType = config2.Manhattan
 			case "Curvilinear":
-				configBack.DistanceType = config.Curvilinear
+				configBack.DistanceType = config2.Curvilinear
 			}
 		})
 		selectDistanceType.PlaceHolder = ""

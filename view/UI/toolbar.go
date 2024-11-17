@@ -6,8 +6,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/PavlushaSource/Radar/custom_theme"
-	"github.com/PavlushaSource/Radar/internal/config"
+	"github.com/PavlushaSource/Radar/view/config"
+	custom_theme2 "github.com/PavlushaSource/Radar/view/customTheme"
 )
 
 func CreateToolbarFunction(a fyne.App, w1, w2 fyne.Window, Config *config.UIConfig, ctx context.Context) func() fyne.CanvasObject {
@@ -33,9 +33,9 @@ func CreateToolbarFunction(a fyne.App, w1, w2 fyne.Window, Config *config.UIConf
 				}
 			}), widget.NewToolbarAction(theme.ColorPaletteIcon(), func() {
 				if Config.LightThemeFlag {
-					a.Settings().SetTheme(custom_theme.NewDarkTheme())
+					a.Settings().SetTheme(custom_theme2.NewDarkTheme())
 				} else {
-					a.Settings().SetTheme(custom_theme.NewLightTheme())
+					a.Settings().SetTheme(custom_theme2.NewLightTheme())
 				}
 				Config.LightThemeFlag = !Config.LightThemeFlag
 			}), widget.NewToolbarAction(theme.ViewFullScreenIcon(), func() {
@@ -45,7 +45,6 @@ func CreateToolbarFunction(a fyne.App, w1, w2 fyne.Window, Config *config.UIConf
 					} else {
 						w2.SetFullScreen(true)
 					}
-					fmt.Println("PRESS FULL SCREEN", Config.InMainMenu)
 				} else {
 					if Config.InMainMenu {
 						w1.SetFullScreen(false)
