@@ -25,7 +25,7 @@ type BackendConfig struct {
 func NewBackendConfig() BackendConfig {
 	return BackendConfig{
 		DistanceType: Euclidean,
-		UpdateTime:   time.Millisecond * 500,
+		UpdateTime:   time.Millisecond * 2000,
 		CountCats:    25,
 		AngryRadius:  100,
 	}

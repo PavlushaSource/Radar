@@ -5,7 +5,7 @@ import "fyne.io/fyne/v2"
 const (
 	WindowH = 1920
 	WindowW = 1080
-	CatSize = 50
+	CatSize = 100
 )
 
 type UIConfig struct {
