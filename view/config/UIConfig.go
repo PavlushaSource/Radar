@@ -3,12 +3,12 @@ package config
 import "fyne.io/fyne/v2"
 
 const (
-	WindowH = 1920
-	WindowW = 1080
+	WindowH = 480
+	WindowW = 480
 	CatSize = 100
 )
 
-type UIConfig struct {
+type ApplicationConfig struct {
 	WindowSize     fyne.Size
 	CatSize        fyne.Size
 	LightThemeFlag bool
@@ -16,8 +16,8 @@ type UIConfig struct {
 	InMainMenu     bool
 }
 
-func NewUIConfig() UIConfig {
-	return UIConfig{
+func NewApplicationConfig() ApplicationConfig {
+	return ApplicationConfig{
 		WindowSize:     fyne.NewSize(WindowH, WindowW),
 		CatSize:        fyne.NewSize(CatSize, CatSize),
 		LightThemeFlag: true,
