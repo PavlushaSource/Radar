@@ -2,12 +2,13 @@ package UI
 
 import (
 	"context"
+	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/domain"
 	"github.com/PavlushaSource/Radar/view/utils"
-	"time"
 )
 
 const scaleRatio = 1.1
