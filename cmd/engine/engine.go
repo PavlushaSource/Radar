@@ -17,9 +17,6 @@ func main() {
 	}
 	defer f.Close()
 
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
-
 	startEng := time.Now()
 	g := geom.NewSimpleGeom(1080, 1920, make([]geom.Barrier, 0), geom.EuclideanDistance)
 	eng := engine.NewEngine(15, 30, 50000, g)
@@ -27,7 +24,9 @@ func main() {
 	fmt.Println("Create new engine time", endEng.Sub(startEng))
 
 	start := time.Now()
+	pprof.StartCPUProfile(f)
 	eng.Run()
+	pprof.StopCPUProfile()
 	end := time.Now()
 	fmt.Println("Calculate time", end.Sub(start))
 }
