@@ -7,7 +7,10 @@ func EuclideanDistance(first Point, second Point, barriers []Barrier) float64 {
 		return InfDistance
 	}
 
-	return math.Sqrt(math.Pow(first.X()-second.X(), 2) + math.Pow(first.Y()-second.Y(), 2))
+	xDiff := first.X() - second.X()
+	yDiff := first.Y() - second.Y()
+
+	return math.Sqrt(xDiff*xDiff + yDiff*yDiff)
 }
 
 func euclideanAchievability(first Point, second Point, barrier Barrier) bool {
