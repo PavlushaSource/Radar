@@ -3,6 +3,9 @@
 
 .PHONY: run
 
+run-engine:
+	go run ./cmd/engine/engine.go
+
 run:
 	go run ./cmd/desktop/Desktop.go
 
