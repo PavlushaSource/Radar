@@ -14,12 +14,20 @@ const (
 	Curvilinear
 )
 
+type GeometryType uint8
+
+const (
+	Simple GeometryType = iota
+	Vector
+)
+
 type BackendSettings struct {
 	DistanceType                  DistanceType
 	UpdateTime                    time.Duration
 	CountCats                     int
 	FightingRadius, HissingRadius float64
-	bufferSize                    int64
+	BufferSize                    int64
+	GeometryType                  GeometryType
 }
 
 func NewBackendConfig() BackendSettings {
@@ -29,7 +37,8 @@ func NewBackendConfig() BackendSettings {
 		CountCats:      25,
 		FightingRadius: 100,
 		HissingRadius:  200,
-		bufferSize:     16,
+		BufferSize:     16,
+		GeometryType:   Simple,
 	}
 }
 

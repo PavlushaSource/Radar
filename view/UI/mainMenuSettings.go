@@ -11,10 +11,26 @@ import (
 	"github.com/PavlushaSource/Radar/view/utils"
 )
 
-var convertStringToDistance = map[string]config.DistanceType{
+var convertStringToDistanceType = map[string]config.DistanceType{
 	"Euclidean":   config.Euclidean,
 	"Manhattan":   config.Manhattan,
 	"Curvilinear": config.Curvilinear,
+}
+
+var convertDistanceTypeToString = map[config.DistanceType]string{
+	config.Euclidean:   "Euclidean",
+	config.Manhattan:   "Manhattan",
+	config.Curvilinear: "Curvilinear",
+}
+
+var convertStringToGeometryType = map[string]config.GeometryType{
+	"Simple": config.Simple,
+	"Vector": config.Vector,
+}
+
+var convertGeometryTypeToString = map[config.GeometryType]string{
+	config.Simple: "Simple",
+	config.Vector: "Vector",
 }
 
 const (
@@ -43,11 +59,18 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, backendSettings *config.Back
 		hissingRadius.SetText(hissingRadiusDefaultValue)
 
 		selectDistanceType := widget.NewSelect([]string{"Euclidean", "Manhattan", "Curvilinear"}, func(s string) {
-			backendSettings.DistanceType = convertStringToDistance[s]
+			backendSettings.DistanceType = convertStringToDistanceType[s]
 		})
 		selectDistanceType.PlaceHolder = ""
-		selectDistanceTypeDefaultValue := "Euclidean"
+		selectDistanceTypeDefaultValue := convertDistanceTypeToString[backendSettings.DistanceType]
 		selectDistanceType.SetSelected(selectDistanceTypeDefaultValue)
+
+		selectGeometryType := widget.NewSelect([]string{"Simple", "Vector"}, func(s string) {
+			backendSettings.GeometryType = convertStringToGeometryType[s]
+		})
+		selectGeometryType.PlaceHolder = ""
+		selectGeometryTypeDefaultValue := convertGeometryTypeToString[backendSettings.GeometryType]
+		selectGeometryType.SetSelected(selectGeometryTypeDefaultValue)
 
 		// TODO: mb move every variant to own constant entity
 		form := &widget.Form{
@@ -57,6 +80,7 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, backendSettings *config.Back
 				{Text: "Angry radius", Widget: fightingRadius, HintText: "size in pixels"},
 				{Text: "Hissing radius", Widget: hissingRadius, HintText: "size in pixels"},
 				{Text: "Distance type", Widget: selectDistanceType},
+				{Text: "Geometry type", Widget: selectGeometryType},
 			},
 			OnCancel: func() {
 				catCount.SetText(catDefaultValue)
@@ -64,6 +88,7 @@ func CreateConfigChoiceFunction(w1, w2 fyne.Window, backendSettings *config.Back
 				fightingRadius.SetText(fightingRadiusDefaultValue)
 				hissingRadius.SetText(hissingRadiusDefaultValue)
 				selectDistanceType.SetSelected(selectDistanceTypeDefaultValue)
+				selectGeometryType.SetSelected(selectGeometryTypeDefaultValue)
 
 			},
 			OnSubmit: func() {
