@@ -12,6 +12,9 @@ run:
 build:
 	go build -o app ./cmd/desktop/Desktop.go
 
+test:
+	go test ./... -v
+
 fmt:
 	@echo "TODO"
 
