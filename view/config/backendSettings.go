@@ -19,6 +19,7 @@ type BackendSettings struct {
 	UpdateTime                    time.Duration
 	CountCats                     int
 	FightingRadius, HissingRadius float64
+	bufferSize                    int64
 }
 
 func NewBackendConfig() BackendSettings {
@@ -28,6 +29,7 @@ func NewBackendConfig() BackendSettings {
 		CountCats:      25,
 		FightingRadius: 100,
 		HissingRadius:  200,
+		bufferSize:     16,
 	}
 }
 
