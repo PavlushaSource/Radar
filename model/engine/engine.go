@@ -15,7 +15,7 @@ type engine struct {
 	geom   geom.Geom
 	radius float64
 
-	rndCore *rand.Rand
+	rndCores []*rand.Rand
 
 	numColumns int64
 	numRows    int64
@@ -40,7 +40,10 @@ func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom
 	engine.state = newState(geom.Height(), geom.Width(), radiusFight, radiusHiss, numCats, geom)
 	engine.radius = radiusHiss
 
-	engine.rndCore = newRndCore()
+	engine.rndCores = make([]*rand.Rand, 0, numCats)
+	for i := int64(0); i < numCats; i++ {
+		engine.rndCores = append(engine.rndCores, newRndCore())
+	}
 
 	engine.numColumns = numColumns(geom.Width(), radiusHiss)
 	engine.numRows = numRows(geom.Height(), radiusHiss)
