@@ -23,10 +23,10 @@ func (engine *engine) cell(point geom.Point) int64 {
 }
 
 func (engine *engine) checkCellColumnRow(column int64, row int64) bool {
-	if 0 >= row || row >= engine.numRows {
+	if 0 > row || row >= engine.numRows {
 		return false
 	}
-	if 0 >= column || column >= engine.numColumns {
+	if 0 > column || column >= engine.numColumns {
 		return false
 	}
 	return true
