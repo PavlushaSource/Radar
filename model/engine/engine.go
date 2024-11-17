@@ -21,7 +21,7 @@ type engine struct {
 	numRows    int64
 	cells      [][]int64
 
-	hissings map[int64]bool
+	hissings [][]bool
 }
 
 func (engine *engine) Run() State {
@@ -51,7 +51,10 @@ func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom
 		engine.cells = append(engine.cells, make([]int64, 0, numCats))
 	}
 
-	engine.hissings = make(map[int64]bool, numCats*numCats)
+	engine.hissings = make([][]bool, 0, numCats)
+	for i := int64(0); i < numCats; i++ {
+		engine.hissings = append(engine.hissings, make([]bool, numCats))
+	}
 
 	return engine
 }
@@ -62,7 +65,10 @@ func (engine *engine) clean() {
 		engine.cells[i] = make([]int64, 0, capacity)
 	}
 
-	engine.hissings = make(map[int64]bool, engine.state.NumCats()*engine.state.NumCats())
+	engine.hissings = make([][]bool, 0, engine.state.NumCats())
+	for i := int64(0); i < engine.state.NumCats(); i++ {
+		engine.hissings = append(engine.hissings, make([]bool, engine.state.NumCats()))
+	}
 
 	engine.state.clean()
 }
