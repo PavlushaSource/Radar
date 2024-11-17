@@ -4,11 +4,11 @@ import (
 	"context"
 )
 
-type Runnable interface {
+type Runner interface {
 	Run(ctx context.Context) <-chan State
 }
 
-type Runner struct {
+type runner struct {
 	bufferSize int64
 	engine     Engine
 }
