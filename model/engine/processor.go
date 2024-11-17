@@ -7,7 +7,7 @@ func (engine *engine) moveCats() {
 		engine.geom.MovePoint(cat.Point())
 
 		cell := engine.cell(cat.Point())
-		engine.cells[cell] = append(engine.cells[cell], int64(i))
+		engine.cells[cell] = append(engine.cells[cell], i)
 	}
 }
 
@@ -19,7 +19,7 @@ func (engine *engine) processCatsNeighbours() {
 
 		go func() {
 			defer wg.Done()
-			engine.processCatNeighbours(int64(i))
+			engine.processCatNeighbours(i)
 		}()
 	}
 
@@ -30,7 +30,7 @@ func (engine *engine) processCatsNeighbours() {
 
 		go func() {
 			defer wg.Done()
-			engine.postprocessCatHissings(int64(i))
+			engine.postprocessCatHissings(i)
 		}()
 	}
 
@@ -39,7 +39,7 @@ func (engine *engine) processCatsNeighbours() {
 	engine.updateCatsStatus()
 }
 
-func (engine *engine) processCatNeighbours(idx int64) {
+func (engine *engine) processCatNeighbours(idx int) {
 	cell := engine.cell(engine.state.Cats()[idx].Point())
 
 	engine.processCell(idx, cell)
@@ -53,19 +53,20 @@ func (engine *engine) processCatNeighbours(idx int64) {
 	engine.processNeighbourCell(idx, cell, engine.tryGetDownRightCell)
 }
 
-func (engine *engine) processNeighbourCell(cat int64, cell int64, tryGetNeighbourCell neighbourCellExtractor) {
+func (engine *engine) processNeighbourCell(cat int, cell int64, tryGetNeighbourCell neighbourCellExtractor) {
 	if success, neighbourCell := tryGetNeighbourCell(cell); success {
 		engine.processCell(cat, neighbourCell)
 	}
 }
 
-func (engine *engine) processCell(cat int64, cell int64) {
+// TODO: change call of proccessPair to async
+func (engine *engine) processCell(cat int, cell int64) {
 	for _, neighbour := range engine.cells[cell] {
 		engine.proccessPair(cat, neighbour)
 	}
 }
 
-func (engine *engine) proccessPair(cat int64, neighbour int64) {
+func (engine *engine) proccessPair(cat int, neighbour int) {
 	cats := engine.state.Cats()
 	dist := engine.geom.Distance(cats[cat].Point(), cats[neighbour].Point())
 	if dist <= engine.state.RadiusFight() {
@@ -85,14 +86,14 @@ func (engine *engine) proccessPair(cat int64, neighbour int64) {
 	}
 }
 
-func (engine *engine) postprocessCatHissings(idx int64) {
+func (engine *engine) postprocessCatHissings(idx int) {
 	return
 	cat := engine.state.Cats()[idx]
 	if !cat.isHissing() {
 		return
 	}
 
-	hissings := make([]int64, 0, len(cat.Hissings()))
+	hissings := make([]int, 0, len(cat.Hissings()))
 	for _, neighbour := range cat.Hissings() {
 		if engine.hissings[idx][neighbour] || engine.hissings[neighbour][idx] {
 			hissings = append(hissings, neighbour)
