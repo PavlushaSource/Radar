@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const MaxPointMoveDegree = 359
+const maxPointMovingDegree = 359
 
 type vectorGeom struct {
 	baseGeom
@@ -14,7 +14,7 @@ type vectorGeom struct {
 
 func (geom *vectorGeom) MovePoint(point Point) {
 	distance := geom.rng.Float64() * math.Max(geom.width, geom.width)
-	degree := geom.rng.Float64() * MaxPointMoveDegree
+	degree := geom.rng.Float64() * maxPointMovingDegree
 
 	radians := degree * math.Pi / 180.0
 

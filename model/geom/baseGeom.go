@@ -2,9 +2,6 @@ package geom
 
 import "math/rand"
 
-// TODO: move to model constants
-const MAX = 1e18 + 52
-
 type baseGeom struct {
 	height   float64
 	width    float64
@@ -25,11 +22,7 @@ func (geom *baseGeom) Barriers() []Barrier {
 	return geom.barriers
 }
 func (geom *baseGeom) Distance(first Point, second Point) float64 {
-	//TODO: mb to engine?
-	if IsLineSegmentIntersectWithBarrier(LineSegment{first, second}, geom.Barriers()) {
-		return MAX
-	}
-	return geom.distance(first, second)
+	return geom.distance(first, second, geom.barriers)
 }
 
 func (geom *baseGeom) NewPoint() Point {
