@@ -32,6 +32,8 @@ func (engine *engine) checkCellColumnRow(column int64, row int64) bool {
 	return true
 }
 
+type neighbourCellExtractor func(cell int64) (bool, int64)
+
 func (engine *engine) tryGetUpCell(cell int64) (bool, int64) {
 	column := cell / engine.numRows
 	row := cell%engine.numRows + 1
