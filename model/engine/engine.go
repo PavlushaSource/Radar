@@ -30,7 +30,8 @@ func (engine *engine) Run() State {
 	engine.moveCats()
 	engine.processCatsNeighbours()
 
-	return engine.state.Copy()
+	// return engine.state.Copy()
+	return engine.state
 }
 
 func NewEngine(radiusFight float64, radiusHiss float64, numCats int64, geom geom.Geom) Engine {
