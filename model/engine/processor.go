@@ -80,7 +80,7 @@ func (engine *engine) proccessPair(cat int64, neighbour int64) {
 			cats[cat].setHissing(true)
 			cats[neighbour].setHissing(true)
 
-			engine.hissings[engine.catsPairIdx(cat, neighbour)] = true
+			engine.hissings[cat][neighbour] = true
 		}
 
 		cats[cat].setHissings(append(cats[cat].Hissings(), neighbour))
@@ -95,7 +95,7 @@ func (engine *engine) postprocessCatHissings(idx int64) {
 
 	hissings := make([]int64, 0, len(cat.Hissings()))
 	for _, neighbour := range cat.Hissings() {
-		if exist, success := engine.hissings[engine.catsPairIdx(idx, neighbour)]; exist && success {
+		if engine.hissings[idx][neighbour] || engine.hissings[neighbour][idx] {
 			hissings = append(hissings, neighbour)
 		}
 	}
