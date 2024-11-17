@@ -8,7 +8,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/domain"
 )
 
-func CreateCats(source []domain.CatBackend, catSize fyne.Size) []fyne.CanvasObject {
+func CreateCats(source []domain.Cat, catSize fyne.Size) []fyne.CanvasObject {
 	res := make([]fyne.CanvasObject, 0)
 
 	for _, s := range source {
@@ -19,21 +19,5 @@ func CreateCats(source []domain.CatBackend, catSize fyne.Size) []fyne.CanvasObje
 		res = append(res, img)
 	}
 
-	return res
-}
-
-func GenerateBackendCats(count int) []domain.CatBackend {
-	res := make([]domain.CatBackend, count)
-
-	minX, maxX := 0, 1920
-	minY, maxY := 0, 1080
-
-	for i := 0; i < count; i++ {
-		currX := rand.IntN(maxX-minX) + minX
-		currY := rand.IntN(maxY-minY) + minY
-
-		res[i] = domain.CatBackend{X: float32(currX), Y: float32(currY)}
-		res = append(res, domain.CatBackend{X: float32(currX), Y: float32(currY)})
-	}
 	return res
 }
