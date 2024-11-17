@@ -2,6 +2,7 @@ package UI
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/config"
@@ -83,15 +84,14 @@ func RegisterScaleRune(win fyne.Window, object fyne.CanvasObject, layout *CatsLa
 		} else {
 			return
 		}
-		//fmt.Println("Size before resize", object.Size())
-		//currSize := object.Size()
+		fmt.Println("Size before resize", object.Size())
+		//win.Canvas().Size().
+		nextSize := fyne.Size{Width: win.Canvas().Size().Width * layout.Scale, Height: win.Canvas().Size().Height * layout.Scale}
 
-		nextSize := fyne.Size{Width: UIConfig.WindowSize.Width * layout.Scale, Height: UIConfig.WindowSize.Height * layout.Scale}
-
-		//fmt.Println("Next size", nextSize.Width, nextSize.Height, "Scale", layout.Scale)
+		fmt.Println("Next size", nextSize.Width, nextSize.Height, "Scale", layout.Scale)
 
 		object.Resize(nextSize)
-		//fmt.Println("Size after resize", object.Size())
+		fmt.Println("Size after resize", object.Size())
 		//object.Refresh()
 		//win.Canvas().Refresh(object)
 	}
