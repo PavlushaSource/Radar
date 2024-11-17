@@ -12,6 +12,8 @@ const (
 	Fighting
 )
 
+type hissingFilter func(int) bool
+
 type Cat interface {
 	Status() Status
 	X() float64
@@ -33,6 +35,8 @@ type Cat interface {
 
 	addHissing(hissingCat int)
 	addFighting(fightingCat int)
+
+	filterHissings(hissingFilter hissingFilter)
 
 	copyHissingsFrom(src []int)
 	copyFightingsFrom(src []int)
@@ -107,6 +111,17 @@ func (cat *cat) addHissing(hissingCat int) {
 
 func (cat *cat) addFighting(fightingCat int) {
 	cat._fightings = append(cat._fightings, fightingCat)
+}
+
+func (cat *cat) filterHissings(hissingFilter hissingFilter) {
+	n := 0
+	for _, h := range cat._hissings {
+		if hissingFilter(h) {
+			cat._hissings[n] = h
+			n++
+		}
+	}
+	cat._hissings = cat._hissings[:n]
 }
 
 func (cat *cat) copyHissingsFrom(src []int) {
