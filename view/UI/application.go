@@ -144,6 +144,8 @@ func (app *radarApplication) setupApplication() {
 func (app *radarApplication) setupSettingsMenuWindow(ctx context.Context) {
 	onHomeAction := func() {
 		if !app.appConfig.InMainMenu {
+			app.radarWindow.SetFullScreen(false)
+			app.appConfig.FullScreenMode = false
 			app.radarWindow.Hide()
 
 			app.settingsMenuWindow.CenterOnScreen()
@@ -174,6 +176,8 @@ func (app *radarApplication) setupSettingsMenuWindow(ctx context.Context) {
 	radarSettings := view.NewRadarSettings()
 
 	onConfigChoice := func(chosenRadarSettings view.RadarSettings) {
+		app.settingsMenuWindow.SetFullScreen(false)
+		app.appConfig.FullScreenMode = false
 		app.settingsMenuWindow.Hide()
 
 		//TODO: move to ViewModel
