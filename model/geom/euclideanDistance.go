@@ -11,8 +11,6 @@ func EuclideanDistance(first Point, second Point, barriers []Barrier) float64 {
 }
 
 func euclideanAchievability(first Point, second Point, barrier Barrier) bool {
-	var barrierLine = barrier.LineSegment
-
 	// checks projections intersection
 	var projectionAchievability = func(ls1Start, ls1Finish, ls2Start, ls2Finish float64) bool {
 		if ls1Start > ls1Finish {
@@ -31,8 +29,8 @@ func euclideanAchievability(first Point, second Point, barrier Barrier) bool {
 		return 0.5 * ((p2.X()-p1.X())*(p3.Y()-p1.Y()) - (p2.Y()-p1.Y())*(p3.X()-p1.X()))
 	}
 
-	return !(projectionAchievability(first.X(), second.X(), barrierLine.StartPoint.X(), barrierLine.FinishPoint.X()) &&
-		projectionAchievability(first.Y(), second.Y(), barrierLine.StartPoint.Y(), barrierLine.FinishPoint.Y()) &&
-		getTriangleArea(first, second, barrierLine.StartPoint)*getTriangleArea(first, second, barrierLine.FinishPoint) <= Eps &&
-		getTriangleArea(barrierLine.StartPoint, barrierLine.FinishPoint, first)*getTriangleArea(barrierLine.StartPoint, barrierLine.FinishPoint, second) <= Eps)
+	return !(projectionAchievability(first.X(), second.X(), barrier.StartPoint().X(), barrier.FinishPoint().X()) &&
+		projectionAchievability(first.Y(), second.Y(), barrier.StartPoint().Y(), barrier.FinishPoint().Y()) &&
+		getTriangleArea(first, second, barrier.StartPoint())*getTriangleArea(first, second, barrier.FinishPoint()) <= Eps &&
+		getTriangleArea(barrier.StartPoint(), barrier.FinishPoint(), first)*getTriangleArea(barrier.StartPoint(), barrier.FinishPoint(), second) <= Eps)
 }

@@ -18,8 +18,8 @@ type distanceTest struct {
 var emptyBarrierSlice []Barrier
 
 var barrierSlice = []Barrier{
-	{LineSegment{newPoint(1, 1), newPoint(3, 3)}},
-	{LineSegment{newPoint(4, 1), newPoint(4, 4)}},
+	NewBarrier(newPoint(1, 1), newPoint(3, 3)),
+	NewBarrier(newPoint(4, 1), newPoint(4, 4)),
 }
 
 var distanceFuncArgsForTests = []distanceFuncArgs{
