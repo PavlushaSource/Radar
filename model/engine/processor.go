@@ -44,29 +44,20 @@ func (engine *engine) processCatsNeighbours() {
 func (engine *engine) processCatNeighbours(idx int64) {
 	cell := engine.cell(engine.state.Cats()[idx].Point())
 
-	if success, neighbourCell := engine.tryGetUpCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetDownCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetLeftCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetRightCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetUpLeftCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetUpRighrCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetDownLeftCell(cell); success {
-		engine.processCell(idx, neighbourCell)
-	}
-	if success, neighbourCell := engine.tryGetDownRightCell(cell); success {
-		engine.processCell(idx, neighbourCell)
+	engine.processCell(idx, cell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetUpCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetDownCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetLeftCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetRightCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetUpLeftCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetUpRighrCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetDownLeftCell)
+	engine.processNeighbourCell(idx, cell, engine.tryGetDownRightCell)
+}
+
+func (engine *engine) processNeighbourCell(cat int64, cell int64, tryGetNeighbourCell neighbourCellExtractor) {
+	if success, neighbourCell := tryGetNeighbourCell(cell); success {
+		engine.processCell(cat, neighbourCell)
 	}
 }
 
