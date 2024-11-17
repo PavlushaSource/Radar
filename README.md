@@ -12,3 +12,4 @@
    - Stop modeling on exit to main menu??
  - Set app icon
  - Update app name (now Desctop)
+ - Support two radiuses: For fighting and hissing

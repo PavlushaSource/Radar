@@ -9,6 +9,7 @@ import (
 )
 
 func CreateBottom() fyne.CanvasObject {
+	// TODO: Change to rectangle with link
 	texts := container.NewHBox(widget.NewLabel("tepa46, Arsene-Baitenov, PavlushaSoure"),
 		layout.NewSpacer(),
 		widget.NewButton("Source code", func() {
