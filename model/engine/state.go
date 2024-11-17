@@ -1,15 +1,29 @@
 package engine
 
-import "github.com/PavlushaSource/Radar/model/geom"
+import (
+	"sync"
+
+	"github.com/PavlushaSource/Radar/model/geom"
+)
 
 type State interface {
 	Height() float64
 	Width() float64
 	RadiusHiss() float64
 	RadiusFight() float64
-	NumCats() int64
+
+	NumCats() int
 	Cats() []Cat
-	Copy() State
+
+	Copy(dst State)
+
+	setHeight(height float64)
+	setWidth(width float64)
+	setRadiusHiss(radiusHiss float64)
+	setRadiusFight(radiusFight float64)
+
+	copyCatsFrom(src []Cat)
+
 	clean()
 }
 
@@ -18,7 +32,6 @@ type state struct {
 	width       float64
 	radiusHiss  float64
 	radiusFight float64
-	numCats     int64
 	cats        []Cat
 }
 
@@ -38,29 +51,54 @@ func (state *state) RadiusFight() float64 {
 	return state.radiusFight
 }
 
-func (state *state) NumCats() int64 {
-	return state.numCats
+func (state *state) NumCats() int {
+	return len(state.cats)
 }
 
 func (state *state) Cats() []Cat {
 	return state.cats
 }
 
-func (original *state) Copy() State {
-	copy := new(state)
+func (state *state) Copy(dst State) {
+	dst.setHeight(state.height)
+	dst.setWidth(state.width)
+	dst.setRadiusHiss(state.radiusHiss)
+	dst.setRadiusFight(state.radiusFight)
 
-	copy.height = original.height
-	copy.width = original.width
-	copy.radiusFight = original.radiusFight
-	copy.radiusHiss = original.radiusHiss
-	copy.numCats = original.numCats
+	dst.copyCatsFrom(state.cats)
+}
 
-	copy.cats = make([]Cat, 0, copy.numCats)
-	for _, cat := range original.cats {
-		copy.cats = append(copy.cats, cat.Copy())
+func (state *state) setHeight(height float64) {
+	state.height = height
+}
+
+func (state *state) setWidth(width float64) {
+	state.width = width
+}
+
+func (state *state) setRadiusHiss(radiusHiss float64) {
+	state.radiusHiss = radiusHiss
+}
+
+func (state *state) setRadiusFight(radiusFight float64) {
+	state.radiusFight = radiusFight
+}
+
+func (state *state) copyCatsFrom(src []Cat) {
+	var wg sync.WaitGroup
+
+	state.cats = state.cats[:len(src)]
+
+	for i := range src {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+			src[i].Copy(state.cats[i])
+		}()
 	}
 
-	return copy
+	wg.Wait()
 }
 
 func (state *state) clean() {
@@ -76,7 +114,6 @@ func newState(height float64, width float64, radiusFight float64, radiusHiss flo
 	state.width = width
 	state.radiusFight = radiusFight
 	state.radiusHiss = radiusHiss
-	state.numCats = numCats
 
 	state.cats = make([]Cat, 0, numCats)
 	for i := int64(0); i < numCats; i++ {
