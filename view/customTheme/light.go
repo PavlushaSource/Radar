@@ -1,4 +1,4 @@
-package custom_theme
+package customTheme
 
 import (
 	"fyne.io/fyne/v2"
