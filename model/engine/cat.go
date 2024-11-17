@@ -17,8 +17,10 @@ type Cat interface {
 	X() float64
 	Y() float64
 
-	Hissings() []int
-	Fightings() []int
+	NumHissings() int
+	HissingsElementAt(idx int) int
+	NumFightings() int
+	FightingsElementAt(idx int) int
 
 	Copy(dst Cat)
 
@@ -58,12 +60,20 @@ func (cat *cat) Y() float64 {
 	return cat._point.Y()
 }
 
-func (cat *cat) Hissings() []int {
-	return cat._hissings
+func (cat *cat) NumHissings() int {
+	return len(cat._hissings)
 }
 
-func (cat *cat) Fightings() []int {
-	return cat._fightings
+func (cat *cat) HissingsElementAt(idx int) int {
+	return cat._hissings[idx]
+}
+
+func (cat *cat) NumFightings() int {
+	return len(cat._fightings)
+}
+
+func (cat *cat) FightingsElementAt(idx int) int {
+	return cat._fightings[idx]
 }
 
 func (cat *cat) Copy(dst Cat) {
@@ -74,8 +84,6 @@ func (cat *cat) Copy(dst Cat) {
 
 	cat._point.Copy(dst.point())
 }
-
-//////////////////
 
 func (cat *cat) point() geom.Point {
 	return cat._point
@@ -119,8 +127,6 @@ func (cat *cat) clean() {
 	cat._hissings = cat._hissings[:0]
 	cat._fightings = cat._fightings[:0]
 }
-
-//////////////////
 
 func newCat(point geom.Point, numCats int64) Cat {
 	cat := new(cat)
