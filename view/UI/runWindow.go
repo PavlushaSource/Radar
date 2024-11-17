@@ -2,7 +2,6 @@ package UI
 
 import (
 	"context"
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/config"
@@ -19,18 +18,18 @@ func CreateContentRunWindow(w1, w2 fyne.Window, backConfig *config.BackendSettin
 	Cats := utils.CreateCats(backEnd, UIConfig.CatSize)
 
 	// TODO temp check correct work
-	go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			//fmt.Println("MOVE CATS")
-			for _, c := range Cats {
-				go func() {
-					AnimateCat(c.Position(), c.Position().Add(fyne.NewPos(-100, -100)), c, 600)
-					time.Sleep(100 * time.Millisecond)
-				}()
-			}
-		}
-	}()
+	//go func() {
+	//	for {
+	//		time.Sleep(5 * time.Second)
+	//		//fmt.Println("MOVE CATS")
+	//		for _, c := range Cats {
+	//			go func() {
+	//				AnimateCat(c.Position(), c.Position().Add(fyne.NewPos(-100, -100)), c, 600)
+	//				time.Sleep(100 * time.Millisecond)
+	//			}()
+	//		}
+	//	}
+	//}()
 
 	layout := CatsLayout{BackendConfig: backConfig, UIConfig: UIConfig, Scale: 1, prevSize: UIConfig.WindowSize}
 
@@ -56,26 +55,21 @@ func (d *CatsLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 }
 
 func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
-	scaleX := d.prevSize.Width / containerSize.Width
-	scaleY := d.prevSize.Height / containerSize.Height
+	scaleX := containerSize.Width / d.prevSize.Width
+	scaleY := containerSize.Height / d.prevSize.Height
 
 	for _, obj := range objects {
-
-		scaleVectorX := (d.ScaleCenter.X - obj.Position().X) * (scaleX - 1)
-		scaleVectorY := (d.ScaleCenter.Y - obj.Position().Y) * (scaleY - 1)
+		scaleVectorX := (obj.Position().X - d.ScaleCenter.X) * scaleX
+		scaleVectorY := (obj.Position().Y - d.ScaleCenter.Y) * scaleY
 		moveCat := fyne.NewPos(scaleVectorX, scaleVectorY)
-		//fmt.Println("moveCat", moveCat)
-		//fmt.Println("SCALE CENTER", d.ScaleCenter)
-		//currentSize := obj.Size()
 		nextSize := fyne.NewSize(d.UIConfig.CatSize.Width*d.Scale, d.UIConfig.CatSize.Height*d.Scale)
 		obj.Resize(nextSize)
-		obj.Move(obj.Position().Add(moveCat))
-		//fmt.Println("Cat position", obj.Position())
+		obj.Move(moveCat)
 	}
 	d.prevSize = containerSize
 }
 
-func RegisterScaleRune(win fyne.Window, object fyne.CanvasObject, layout *CatsLayout, UIConfig config.UIConfig) func(r rune) {
+func RegisterScaleRune(w2 fyne.Window, object fyne.CanvasObject, layout *CatsLayout, UIConfig config.UIConfig) func(r rune) {
 	return func(r rune) {
 		if r == '=' {
 			layout.Scale *= scaleRatio
@@ -84,14 +78,14 @@ func RegisterScaleRune(win fyne.Window, object fyne.CanvasObject, layout *CatsLa
 		} else {
 			return
 		}
-		fmt.Println("Size before resize", object.Size())
+		//fmt.Println("Size before resize", object.Size())
 		//win.Canvas().Size().
-		nextSize := fyne.Size{Width: win.Canvas().Size().Width * layout.Scale, Height: win.Canvas().Size().Height * layout.Scale}
+		nextSize := fyne.Size{Width: w2.Canvas().Size().Width * layout.Scale, Height: w2.Canvas().Size().Height * layout.Scale}
 
-		fmt.Println("Next size", nextSize.Width, nextSize.Height, "Scale", layout.Scale)
+		//fmt.Println("Next size", nextSize.Width, nextSize.Height, "Scale", layout.Scale)
 
 		object.Resize(nextSize)
-		fmt.Println("Size after resize", object.Size())
+		//fmt.Println("Size after resize", object.Size())
 		//object.Refresh()
 		//win.Canvas().Refresh(object)
 	}
