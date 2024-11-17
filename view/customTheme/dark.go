@@ -1,9 +1,10 @@
 package customTheme
 
 import (
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
-	"image/color"
 )
 
 type DarkTheme struct {
