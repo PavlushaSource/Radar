@@ -2,7 +2,6 @@ package viewModel
 
 import (
 	"context"
-	"fmt"
 	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
@@ -62,7 +61,7 @@ func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	catsUpdater := func() {
 		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
 		wg := sync.WaitGroup{}
-		fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
+		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {
 			wg.Add(1)
 			go func() {
