@@ -2,16 +2,16 @@ package utils
 
 import (
 	"fyne.io/fyne/v2"
-	"github.com/PavlushaSource/Radar/view/domain"
+	"github.com/PavlushaSource/Radar/viewModel"
 )
 
-func resourceCat(color domain.Color) fyne.Resource {
+func resourceCat(color producer.Color) fyne.Resource {
 	switch color {
-	case domain.Red:
+	case producer.Red:
 		return ResourceCatRedSvg
-	case domain.Purple:
+	case producer.Purple:
 		return ResourceCatPurpleSvg
-	case domain.Blue:
+	case producer.Blue:
 		return ResourceCatBlueSvg
 	default:
 		panic("resourceCat: unknown color")
