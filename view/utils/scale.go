@@ -4,10 +4,12 @@ import "fyne.io/fyne/v2"
 
 const (
 	scaleRatio = 1.1
+	maxScale   = 2
+	minScale   = 0.01
 )
 
 func IncreaseScale(container *fyne.Container, width, height, scale float32) float32 {
-	newScale := scale * scaleRatio
+	newScale := min(scale*scaleRatio, maxScale)
 
 	updateContainerSize(container, width, height, newScale)
 
@@ -15,7 +17,7 @@ func IncreaseScale(container *fyne.Container, width, height, scale float32) floa
 }
 
 func DecreaseScale(container *fyne.Container, width, height, scale float32) float32 {
-	newScale := scale / scaleRatio
+	newScale := max(scale/scaleRatio, minScale)
 
 	updateContainerSize(container, width, height, newScale)
 
