@@ -139,13 +139,88 @@ func (processor *processor) cellSplitting() {
 func (processor *processor) processCatsNeighbours() {
 	var wg sync.WaitGroup
 
-	for i := range processor.state.cats {
+	for col := 0; col < processor.numColumns-1; col++ {
+		for row := 0; row < processor.numRows-1; row++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for ci := range processor.cells[processor.cellByColumnRow(col, row)] {
+					for ni := range processor.cells[processor.cellByColumnRow(col, row)] {
+						if ci == ni {
+							continue
+						}
+						processor.proccessPair(ci, ni)
+					}
+					for ni := range processor.cells[processor.cellByColumnRow(col+1, row)] {
+						processor.proccessPair(ci, ni)
+					}
+					for ni := range processor.cells[processor.cellByColumnRow(col, row+1)] {
+						processor.proccessPair(ci, ni)
+					}
+					for ni := range processor.cells[processor.cellByColumnRow(col+1, row+1)] {
+						processor.proccessPair(ci, ni)
+					}
+				}
+			}()
+		}
+	}
+
+	for row := 0; row < processor.numRows-1; row++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.processCatNeighbours(i)
+			for ci := range processor.cells[processor.cellByColumnRow(processor.numColumns-1, row)] {
+				for ni := range processor.cells[processor.cellByColumnRow(processor.numColumns-1, row)] {
+					if ci == ni {
+						continue
+					}
+					processor.proccessPair(ci, ni)
+				}
+				for ni := range processor.cells[processor.cellByColumnRow(processor.numColumns-1, row+1)] {
+					processor.proccessPair(ci, ni)
+				}
+			}
 		}()
 	}
+
+	for col := 0; col < processor.numColumns-1; col++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for ci := range processor.cells[processor.cellByColumnRow(col, processor.numRows-1)] {
+				for ni := range processor.cells[processor.cellByColumnRow(col, processor.numRows-1)] {
+					if ci == ni {
+						continue
+					}
+					processor.proccessPair(ci, ni)
+				}
+				for ni := range processor.cells[processor.cellByColumnRow(col+1, processor.numRows-1)] {
+					processor.proccessPair(ci, ni)
+				}
+			}
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for ci := range processor.cells[processor.cellByColumnRow(processor.numColumns-1, processor.numRows-1)] {
+			for ni := range processor.cells[processor.cellByColumnRow(processor.numColumns-1, processor.numRows-1)] {
+				if ci == ni {
+					continue
+				}
+				processor.proccessPair(ci, ni)
+			}
+		}
+	}()
+
+	// for i := range processor.state.cats {
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		defer wg.Done()
+	// 		processor.processCatNeighbours(i)
+	// 	}()
+	// }
 
 	wg.Wait()
 
@@ -192,6 +267,7 @@ func (processor *processor) processCell(catIdx int, cell int) {
 	}
 }
 
+// TODO: change hissingProbability calculation to 1/(dist * dist)
 func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
 	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
 

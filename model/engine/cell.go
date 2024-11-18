@@ -14,6 +14,10 @@ func numRows(height float64, radius float64) int {
 	return int(math.Ceil(height / radius))
 }
 
+func (processor *processor) cellByColumnRow(column int, row int) int {
+	return column*processor.numRows + row
+}
+
 func (processor *processor) tryGetCell(point geom.Point) (bool, int) {
 	column := int(math.Trunc(point.X() / processor.radius))
 	row := int(math.Trunc(point.Y() / processor.radius))

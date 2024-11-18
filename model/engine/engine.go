@@ -2,7 +2,9 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/geom"
@@ -50,4 +52,15 @@ func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.G
 	engine.bufferSize = bufferSize
 
 	return engine
+}
+
+func (engine *Engine) RawRun() *State {
+	state := newState(engine.processor.numCats, engine.processor.geom)
+
+	start := time.Now()
+	state = engine.processor.process(state)
+	end := time.Now()
+	fmt.Println("Calculation time:", end.Sub(start))
+
+	return state
 }

@@ -1,10 +1,7 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"time"
+	"runtime"
 
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
@@ -12,32 +9,43 @@ import (
 )
 
 func main() {
-	f, err := os.Create("cpu.pprof")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+	runtime.GOMAXPROCS(runtime.NumCPU() / 4)
+
+	// f, err := os.Create("cpu.pprof")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer f.Close()
 
 	rndAsync := rnd.NewRndCore()
 
-	g := geom.NewSimpleGeom(1080, 1920, make([]geom.Barrier, 0), geom.EuclideanDistance, rndAsync)
-	eng := engine.NewEngine(1, 2, 50000, g, rndAsync, 5)
-	getCh, putCh := eng.Run(context.Background())
+	g := geom.NewSimpleGeom(2160, 3840, make([]geom.Barrier, 0), geom.EuclideanDistance, rndAsync)
+	eng := engine.NewEngine(15, 15, 50000, g, rndAsync, 5)
+	// getCh, putCh := eng.Run(context.Background())
 
-	// start := time.Now()
-	// state := <-getCh
-	// fmt.Println(state.NumCats())
-	// end := time.Now()
-	// fmt.Println("Calculation time:", end.Sub(start))
+	// // start := time.Now()
+	// // state := <-getCh
+	// // fmt.Println(state.NumCats())
+	// // end := time.Now()
+	// // fmt.Println("Calculation time:", end.Sub(start))
 
 	for {
-		start := time.Now()
-		state := <-getCh
-		fmt.Println(state.NumCats())
-		putCh <- state
-		end := time.Now()
-		fmt.Println("Calculation time:", end.Sub(start))
+		eng.RawRun()
 	}
+
+	// fmt.Println(runtime.GOMAXPROCS(runtime.NumCPU()))
+	// fmt.Println(runtime.NumCPU())
+	// fmt.Println(runtime.NumCgoCall())
+	// fmt.Println(runtime.NumGoroutine())
+
+	// for {
+	// 	start := time.Now()
+	// 	state := <-getCh
+	// 	fmt.Println(state.NumCats())
+	// 	putCh <- state
+	// 	end := time.Now()
+	// 	fmt.Println("Calculation time:", end.Sub(start))
+	// }
 
 	// start := time.Now()
 	// pprof.StartCPUProfile(f)
