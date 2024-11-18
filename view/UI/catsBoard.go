@@ -4,54 +4,68 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/widget"
+	"github.com/PavlushaSource/Radar/view/utils"
 	"image/color"
 )
 
-type CatsBoard struct {
+type CatsScrollableContainer struct {
 	widget.BaseWidget
 
-	obj fyne.Layout
+	containerSize fyne.Size
+
+	cats          []fyne.CanvasObject
+	catsLayout    *CatsLayout
+	catsContainer *fyne.Container
 
 	prevEventPosition fyne.Position
-	cats              []fyne.CanvasObject
 }
 
-// TODO: make opportunity to call scale not only by keyboard
-func (c *CatsBoard) Scrolled(event *fyne.ScrollEvent) {
-	//fmt.Println(event.Scrolled)
-	//fmt.Println(event.Position)
+func (s *CatsScrollableContainer) Scrolled(event *fyne.ScrollEvent) {
+	// we only process OY scrolls :)
+	scrollDelta := event.Scrolled.DY
+
+	if scrollDelta > 0 {
+		s.catsLayout.Scale = utils.IncreaseScale(s.catsContainer, s.containerSize.Width, s.containerSize.Height, s.catsLayout.Scale)
+	} else {
+		s.catsLayout.Scale = utils.DecreaseScale(s.catsContainer, s.containerSize.Width, s.containerSize.Height, s.catsLayout.Scale)
+	}
 }
 
-func (c *CatsBoard) Dragged(event *fyne.DragEvent) {
+func (s *CatsScrollableContainer) Dragged(event *fyne.DragEvent) {
 	//fmt.Println(p)
-	if c.prevEventPosition.X == 0 && c.prevEventPosition.Y == 0 {
-		c.prevEventPosition = event.Position
+	if s.prevEventPosition.X == 0 && s.prevEventPosition.Y == 0 {
+		s.prevEventPosition = event.Position
 		return
 	}
 
-	vector := fyne.Position{X: event.Position.X - c.prevEventPosition.X, Y: event.Position.Y - c.prevEventPosition.Y}
+	vector := fyne.Position{X: event.Position.X - s.prevEventPosition.X, Y: event.Position.Y - s.prevEventPosition.Y}
 	//fmt.Println(vector)
-	for _, cat := range c.cats {
+	for _, cat := range s.cats {
 		go func() {
 			cat.Move(cat.Position().Add(vector))
 			cat.Refresh()
 		}()
 	}
-	c.prevEventPosition = event.Position
+	s.prevEventPosition = event.Position
 }
 
-func (c *CatsBoard) DragEnd() {
-	c.prevEventPosition = fyne.Position{}
+func (s *CatsScrollableContainer) DragEnd() {
+	s.prevEventPosition = fyne.Position{}
 }
 
-func (c *CatsBoard) CreateRenderer() fyne.WidgetRenderer {
+func (s *CatsScrollableContainer) CreateRenderer() fyne.WidgetRenderer {
 	rect := canvas.NewRectangle(color.Transparent)
 
 	return widget.NewSimpleRenderer(rect)
 }
 
-func CreateCatsBoard(cats []fyne.CanvasObject, obj fyne.Layout) *CatsBoard {
-	board := &CatsBoard{cats: cats, obj: obj}
+func CreateCatsScrollableContainer(cats []fyne.CanvasObject, catsContainer *fyne.Container, catsLayout *CatsLayout, containerSize fyne.Size) *CatsScrollableContainer {
+	board := &CatsScrollableContainer{
+		cats:          cats,
+		catsContainer: catsContainer,
+		catsLayout:    catsLayout,
+		containerSize: containerSize,
+	}
 
 	board.ExtendBaseWidget(board)
 
