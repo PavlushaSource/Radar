@@ -7,6 +7,6 @@ type Geom interface {
 
 	Distance(first Point, second Point) float64
 
-	NewPoint() Point
+	NewRandomPoint() Point
 	MovePoint(point Point)
 }

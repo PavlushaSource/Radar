@@ -15,15 +15,18 @@ func (geom *simpleGeom) MovePoint(point Point) {
 	x := geom.rndAsync.Float64ByFloat64(point.X()) * geom.width
 	y := geom.rndAsync.Float64ByFloat64(point.Y()) * geom.height
 
-	point.set(x, y)
+	movedPoint := geom.LimitPointMovement(point, NewPoint(x, y))
+
+	point.set(movedPoint.X(), movedPoint.Y())
 }
 
-func NewSimpleGeom(height float64, width float64, barriers []Barrier, distance Distance, rndAsync rnd.RndAsync) Geom {
+func NewSimpleGeom(height float64, width float64, barriers []Barrier, maxMoveDistance float64, distance Distance, rndAsync rnd.RndAsync) Geom {
 	geom := new(simpleGeom)
 	geom.height = height
 	geom.width = width
 	geom.barriers = barriers
 	geom.distance = distance
+	geom.maxMoveDistance = maxMoveDistance
 	geom.rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 	geom.rndAsync = rndAsync
 	return geom

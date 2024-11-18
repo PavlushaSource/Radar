@@ -20,7 +20,7 @@ func main() {
 
 	rndAsync := rnd.NewRndCore()
 
-	g := geom.NewSimpleGeom(1080, 1920, make([]geom.Barrier, 0), geom.EuclideanDistance, rndAsync)
+	g := geom.NewSimpleGeom(1080, 1920, make([]geom.Barrier, 0), 100, geom.EuclideanDistance, rndAsync)
 	eng := engine.NewEngine(1, 2, 50000, g, rndAsync, 5)
 	getCh, putCh := eng.Run(context.Background())
 
