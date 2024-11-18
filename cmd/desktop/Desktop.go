@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/UI"

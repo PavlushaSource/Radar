@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"math/rand/v2"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"github.com/PavlushaSource/Radar/view/domain"
-	"math/rand/v2"
 )
 
 func CreateCats(source []domain.CatBackend, catSize fyne.Size) []fyne.CanvasObject {
