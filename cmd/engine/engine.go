@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-  "os"
+	"os"
 	"time"
-  
-  "github.com/PavlushaSource/Radar/model/core/rnd"
+
+	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
 )
