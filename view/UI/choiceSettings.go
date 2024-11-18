@@ -6,32 +6,9 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"github.com/PavlushaSource/Radar/view"
-	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/utils"
 )
-
-var convertStringToDistanceType = map[string]view.DistanceType{
-	"Euclidean":   view.Euclidean,
-	"Manhattan":   view.Manhattan,
-	"Curvilinear": view.Curvilinear,
-}
-
-var convertDistanceTypeToString = map[view.DistanceType]string{
-	view.Euclidean:   "Euclidean",
-	view.Manhattan:   "Manhattan",
-	view.Curvilinear: "Curvilinear",
-}
-
-var convertStringToGeometryType = map[string]view.GeometryType{
-	"Simple": view.Simple,
-	"Vector": view.Vector,
-}
-
-var convertGeometryTypeToString = map[view.GeometryType]string{
-	view.Simple: "Simple",
-	view.Vector: "Vector",
-}
 
 const (
 	runText   = "Run"
@@ -39,9 +16,8 @@ const (
 )
 
 func CreateSettingsChoiceFunction(
-	radarSettings view.RadarSettings,
-	appConfig config.ApplicationConfig,
-	onConfigChoice func(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig),
+	radarSettings api.RadarSettings,
+	onConfigChoice func(radarSettings api.RadarSettings),
 	onConfigChoiceError func(err error),
 ) func() fyne.CanvasObject {
 	return func() fyne.CanvasObject {
@@ -64,17 +40,19 @@ func CreateSettingsChoiceFunction(
 		hissingRadius.SetText(hissingRadiusDefaultValue)
 
 		selectDistanceType := widget.NewSelect([]string{"Euclidean", "Manhattan", "Curvilinear"}, func(s string) {
-			radarSettings.DistanceType = convertStringToDistanceType[s]
+			radarSettings.DistanceType = utils.ConvertStringToDistanceType[s]
 		})
 		selectDistanceType.PlaceHolder = ""
-		selectDistanceTypeDefaultValue := convertDistanceTypeToString[radarSettings.DistanceType]
+		selectDistanceTypeDefaultValue := utils.ConvertDistanceTypeToString[radarSettings.DistanceType]
+		//selectDistanceTypeDefaultValue := ""
 		selectDistanceType.SetSelected(selectDistanceTypeDefaultValue)
 
 		selectGeometryType := widget.NewSelect([]string{"Simple", "Vector"}, func(s string) {
-			radarSettings.GeometryType = convertStringToGeometryType[s]
+			radarSettings.GeometryType = utils.ConvertStringToGeometryType[s]
 		})
 		selectGeometryType.PlaceHolder = ""
-		selectGeometryTypeDefaultValue := convertGeometryTypeToString[radarSettings.GeometryType]
+		selectGeometryTypeDefaultValue := utils.ConvertGeometryTypeToString[radarSettings.GeometryType]
+		//selectGeometryTypeDefaultValue := ""
 		selectGeometryType.SetSelected(selectGeometryTypeDefaultValue)
 
 		// TODO: mb move every variant to own constant entity
@@ -107,7 +85,7 @@ func CreateSettingsChoiceFunction(
 				if resErr != nil {
 					onConfigChoiceError(resErr)
 				} else {
-					onConfigChoice(radarSettings, appConfig)
+					onConfigChoice(radarSettings)
 				}
 			},
 			SubmitText: runText,
