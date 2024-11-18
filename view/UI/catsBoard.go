@@ -30,15 +30,15 @@ func (s *CatsScrollableContainer) Scrolled(event *fyne.ScrollEvent) {
 		fmt.Println("Increase Scale", s.catsLayout.Scale)
 		s.catsLayout.Scale = utils.IncreaseScale(
 			s.catsContainer,
-			s.containerSize.Width,
-			s.containerSize.Height,
+			s.catsContainer.Size().Width,
+			s.catsContainer.Size().Height,
 			s.catsLayout.Scale)
 	} else {
 		fmt.Println("Decrease Scale", s.catsLayout.Scale)
 		s.catsLayout.Scale = utils.DecreaseScale(
 			s.catsContainer,
-			s.containerSize.Width,
-			s.containerSize.Height,
+			s.catsContainer.Size().Width,
+			s.catsContainer.Size().Height,
 			s.catsLayout.Scale)
 	}
 }

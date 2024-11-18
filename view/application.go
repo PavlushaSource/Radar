@@ -2,6 +2,7 @@ package view
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -115,14 +116,14 @@ func (app *radarApplication) registerScaleKeyboard(catsContainer *fyne.Container
 func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
 	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
-	//fmt.Println("initial size:", layout.PrevSize)
-
-	// create border rectangle
-
+	// TODO add CatsLayout constructor
+	// create border rectangle and move this
 	rect := canvas.NewRectangle(color.Transparent)
+	rect.Resize(fyne.NewSize(app.appConfig.WindowSize.Width, app.appConfig.WindowSize.Height))
 	rect.StrokeColor = color.Black
 	rect.StrokeWidth = 3
 
+	fmt.Println("SIZE RECT", rect.Size())
 	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect}
 
 	objects := make([]fyne.CanvasObject, 0, len(cats)+1)
