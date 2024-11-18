@@ -1,7 +1,5 @@
 package engine
 
-import "github.com/PavlushaSource/Radar/model/geom"
-
 type Status int
 
 const (
@@ -14,13 +12,6 @@ type Cat interface {
 	Status() Status
 	X() float64
 	Y() float64
-
-	Copy(dst Cat)
-
-	point() geom.Point
-
-	setStatus(status Status)
-	setHissing(hissing bool)
 }
 
 type State interface {
