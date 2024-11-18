@@ -9,13 +9,16 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func CreateBottom() fyne.CanvasObject {
+func createLink(text, link string) fyne.CanvasObject {
+	parsedUrl, _ := url.Parse(link)
+	return widget.NewHyperlink(text, parsedUrl)
+}
+
+func createBottom() fyne.CanvasObject {
 	// TODO: Change to rectangle with link
 	texts := container.NewHBox(widget.NewLabel("tepa46, Arsene-Baitenov, PavlushaSoure"),
 		layout.NewSpacer(),
-		widget.NewButton("Source code", func() {
-			u, _ := url.Parse("https://github.com/PavlushaSource/Radar")
-			_ = fyne.CurrentApp().OpenURL(u)
-		}))
+		createLink("Source code", "https://github.com/PavlushaSource/Radar"),
+	)
 	return texts
 }
