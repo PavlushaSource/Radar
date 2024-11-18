@@ -10,6 +10,7 @@ type CatsLayout struct {
 
 	ScaleCenter fyne.Position
 	PrevSize    fyne.Size
+	AppConfig   *config.ApplicationConfig
 	Scale       float32
 }
 
@@ -34,5 +35,6 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 		obj.Move(obj.Position().Add(moveCat))
 		//fmt.Println("Cat position", obj.Position())
 	}
+	d.AppConfig.ScaleEngineCoord = fyne.NewSize(d.AppConfig.ScaleEngineCoord.Width/scaleX, d.AppConfig.ScaleEngineCoord.Height/scaleY)
 	d.PrevSize = containerSize
 }
