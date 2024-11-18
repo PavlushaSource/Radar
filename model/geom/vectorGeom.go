@@ -8,17 +8,15 @@ import (
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 )
 
-const fullCircleDegree = 360
+const maxPointMovingDegree = 359
 
 type vectorGeom struct {
 	baseGeom
 }
 
 func (geom *vectorGeom) MovePoint(point Point) {
-	distance := geom.rndAsync.Float64ByFloat64(point.X())
-
-	rndForDegree := geom.rndAsync.Float64ByFloat64(point.Y())
-	degree := rndForDegree - (rndForDegree/fullCircleDegree)*fullCircleDegree
+	distance := geom.rndAsync.Float64ByFloat64(point.X()) * math.Max(geom.width, geom.width)
+	degree := geom.rndAsync.Float64ByFloat64(point.Y()) * maxPointMovingDegree
 
 	radians := degree * math.Pi / 180.0
 
@@ -33,7 +31,7 @@ func (geom *vectorGeom) MovePoint(point Point) {
 
 func (geom *vectorGeom) newVectorRandomPoint(point Point) Point {
 	distance := geom.rnd.Float64() * math.Max(geom.width, geom.width)
-	degree := geom.rnd.Float64() * (fullCircleDegree - 1)
+	degree := geom.rnd.Float64() * maxPointMovingDegree
 
 	radians := degree * math.Pi / 180.0
 
