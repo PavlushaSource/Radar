@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"math/rand"
 	"sync"
 
+	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
@@ -13,7 +13,8 @@ type processor struct {
 	geom   geom.Geom
 	radius float64
 
-	rndCores []*rand.Rand
+	rndAsync rnd.RndAsync
+	cf       int
 
 	numColumns int
 	numRows    int
@@ -22,7 +23,7 @@ type processor struct {
 	points []geom.Point
 }
 
-func newProcessor(radius float64, numCats int, geometry geom.Geom) *processor {
+func newProcessor(radius float64, numCats int, geometry geom.Geom, rndAsync rnd.RndAsync) *processor {
 	var wg sync.WaitGroup
 
 	processor := new(processor)
@@ -32,23 +33,13 @@ func newProcessor(radius float64, numCats int, geometry geom.Geom) *processor {
 	processor.points = make([]geom.Point, numCats)
 
 	for i := range processor.points {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			processor.points[i] = geometry.NewPoint()
-		}()
+		processor.points[i] = geometry.NewPoint()
 	}
 
 	processor.radius = radius
 
-	processor.rndCores = make([]*rand.Rand, numCats)
-	for i := range processor.rndCores {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			processor.rndCores[i] = newRndCore()
-		}()
-	}
+	processor.rndAsync = rndAsync
+	processor.cf = 0
 
 	processor.numColumns = numColumns(geometry.Width(), radius)
 	processor.numRows = numRows(geometry.Height(), radius)
@@ -80,6 +71,8 @@ func (processor *processor) process(state *state) *state {
 
 func (processor *processor) setUp() {
 	var wg sync.WaitGroup
+
+	processor.cf += 1
 	processor.state.clean()
 
 	for i := range processor.cells {
@@ -189,7 +182,7 @@ func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
 		cat.setStatus(Fighting)
 		neighbour.setStatus(Fighting)
 	} else if dist <= processor.state.radiusHiss {
-		if processor.rndCores[catIdx].Float64() <= hissingProbability(dist) {
+		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= hissingProbability(dist) {
 			cat.hissing = true
 			neighbour.hissing = true
 		}

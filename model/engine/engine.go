@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
@@ -16,12 +17,12 @@ func (engine *engine) Run() State {
 	return engine.state
 }
 
-func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) Engine {
+func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom, rndAsync rnd.RndAsync) Engine {
 	engine := new(engine)
 
 	engine.state = newState(geom.Height(), geom.Width(), radiusFight, radiusHiss, numCats, geom)
 
-	engine.processor = newProcessor(radiusHiss, numCats, geom)
+	engine.processor = newProcessor(radiusHiss, numCats, geom, rndAsync)
 
 	return engine
 }
