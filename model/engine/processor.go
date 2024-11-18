@@ -8,10 +8,13 @@ import (
 )
 
 type processor struct {
-	state *state
+	state *State
 
-	geom   geom.Geom
-	radius float64
+	numCats     int
+	geom        geom.Geom
+	radius      float64
+	radiusFight float64
+	radiusHiss  float64
 
 	rndAsync rnd.RndAsync
 	cf       int
@@ -23,11 +26,12 @@ type processor struct {
 	points []geom.Point
 }
 
-func newProcessor(radius float64, numCats int, geometry geom.Geom, rndAsync rnd.RndAsync) *processor {
+func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry geom.Geom, rndAsync rnd.RndAsync) *processor {
 	var wg sync.WaitGroup
 
 	processor := new(processor)
 
+	processor.numCats = numCats
 	processor.geom = geometry
 
 	processor.points = make([]geom.Point, numCats)
@@ -36,13 +40,15 @@ func newProcessor(radius float64, numCats int, geometry geom.Geom, rndAsync rnd.
 		processor.points[i] = geometry.NewPoint()
 	}
 
-	processor.radius = radius
+	processor.radiusFight = radiusFight
+	processor.radiusHiss = radiusHiss
+	processor.radius = radiusHiss
 
 	processor.rndAsync = rndAsync
 	processor.cf = 0
 
-	processor.numColumns = numColumns(geometry.Width(), radius)
-	processor.numRows = numRows(geometry.Height(), radius)
+	processor.numColumns = numColumns(geometry.Width(), radiusHiss)
+	processor.numRows = numRows(geometry.Height(), radiusHiss)
 	numCells := processor.numColumns * processor.numRows
 	processor.cells = make([][]int, numCells)
 	for i := range processor.cells {
@@ -57,7 +63,7 @@ func newProcessor(radius float64, numCats int, geometry geom.Geom, rndAsync rnd.
 	return processor
 }
 
-func (processor *processor) process(state *state) *state {
+func (processor *processor) process(state *State) *State {
 	processor.state = state
 	processor.setUp()
 
@@ -81,14 +87,15 @@ func (processor *processor) setUp() {
 			defer wg.Done()
 			processor.cells[i] = processor.cells[i][:0]
 		}()
+	}
 
+	for i := range processor.points {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			processor.points[i].Copy(processor.state.cats[i])
 		}()
 	}
-
 	wg.Wait()
 }
 
@@ -184,10 +191,10 @@ func (processor *processor) processCell(catIdx int, cell int) {
 func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
 	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
 
-	if dist <= processor.state.radiusFight {
+	if dist <= processor.radiusFight {
 		processor.state.cats[catIdx].status = Fighting
 		processor.state.cats[neighbourIdx].status = Fighting
-	} else if dist <= processor.state.radiusHiss {
+	} else if dist <= processor.radiusHiss {
 		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= hissingProbability(dist) {
 			processor.state.cats[catIdx].hissing = true
 			processor.state.cats[neighbourIdx].hissing = true
