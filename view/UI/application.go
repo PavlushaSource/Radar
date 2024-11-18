@@ -2,18 +2,16 @@ package UI
 
 import (
 	"context"
-	"fmt"
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"github.com/PavlushaSource/Radar/model/engine"
-	"github.com/PavlushaSource/Radar/model/geom"
+	"github.com/PavlushaSource/Radar/model/runner"
 	"github.com/PavlushaSource/Radar/view"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/customTheme"
-	"github.com/PavlushaSource/Radar/view/domain"
 	"github.com/PavlushaSource/Radar/view/utils"
+	"github.com/PavlushaSource/Radar/viewModel"
 	"sync"
 	"time"
 )
@@ -51,29 +49,61 @@ func (app *radarApplication) RadarWindow() fyne.Window {
 }
 
 func (app *radarApplication) Run(ctx context.Context) {
-	app.setupApplication()
+	app.applyTheme()
 
-	app.setupSettingsMenuWindow(ctx)
+	app.createMainWindow(ctx)
 	app.settingsMenuWindow.ShowAndRun()
+}
+
+func (app *radarApplication) hideWindow(window fyne.Window) {
+	window.SetFullScreen(false)
+	app.appConfig.FullScreenMode = false
+	window.Hide()
+}
+
+func (app *radarApplication) showWindow(window fyne.Window) {
+	window.CenterOnScreen()
+	window.Resize(app.appConfig.WindowSize)
+	window.SetMaster()
+	window.Show()
+}
+
+func (app *radarApplication) homeAction() {
+	if !app.appConfig.InMainMenu {
+		app.hideWindow(app.radarWindow)
+		app.showWindow(app.settingsMenuWindow)
+
+		app.appConfig.InMainMenu = true
+	}
+}
+
+func (app *radarApplication) themeAction() {
+	app.appConfig.LightThemeFlag = !app.appConfig.LightThemeFlag
+	app.app.Settings().SetTheme(customTheme.GetApplicationTheme(app.appConfig))
+}
+
+func (app *radarApplication) fullscreenAction() {
+	app.appConfig.FullScreenMode = !app.appConfig.FullScreenMode
+	if app.appConfig.InMainMenu {
+		app.settingsMenuWindow.SetFullScreen(app.appConfig.FullScreenMode)
+	} else {
+		app.radarWindow.SetFullScreen(app.appConfig.FullScreenMode)
+	}
 }
 
 func (app *radarApplication) RunRadarWindow(
 	ctx context.Context,
-	engineRunner engine.Runner,
+	engineRunner runner.Runner,
 	UpdateTime time.Duration,
 	toolbarCreate func() fyne.CanvasObject,
 ) {
-	app.radarWindow.SetMaster()
-	app.radarWindow.CenterOnScreen()
-	app.radarWindow.Resize(app.appConfig.WindowSize)
 
-	app.radarWindow.Show()
-
+	app.showWindow(app.radarWindow)
 	app.appConfig.InMainMenu = false
 
 	ch := engineRunner.Run(ctx)
 
-	VMCats := ConvertStateToVMCat(<-ch)
+	VMCats := viewModel.ConvertStateToVMCat(<-ch)
 	UICats := utils.CreateCats(VMCats, app.appConfig.CatSize)
 
 	//TODO: move to ViewModel
@@ -105,97 +135,50 @@ func (app *radarApplication) RunRadarWindow(
 		}
 	}()
 
-	RadarContainer := CreateContentRunWindow(app, UICats)
+	//RadarContainer := CreateContentRunWindow(app, UICats)
 
-	app.radarWindow.SetContent(container.NewBorder(toolbarCreate(), nil, nil, nil, RadarContainer))
+	//app.radarWindow.SetContent(container.NewBorder(toolbarCreate(), nil, nil, nil, RadarContainer))
 }
 
-// TODO: move to ViewModel
-func ConvertStateToVMCat(state engine.State) []domain.Cat {
-	vmCats := make([]domain.Cat, 0, state.NumCats())
-
-	for _, c := range state.Cats() {
-		fmt.Println(c.Status())
-		fmt.Println(ConvertStatusToColor(c))
-		vmCats = append(vmCats, domain.Cat{X: float32(c.X()), Y: float32(c.Y()), Color: ConvertStatusToColor(c)})
-	}
-
-	return vmCats
-}
-
-// TODO: move to ViewModel
-func ConvertStatusToColor(cat engine.Cat) domain.Color {
-	switch cat.Status() {
-	case engine.Calm:
-		return domain.Blue
-	case engine.Hissing:
-		return domain.Purple
-	case engine.Fighting:
-		return domain.Red
-	default:
-		panic("Undefined Color")
-	}
-}
-
-func (app *radarApplication) setupApplication() {
+func (app *radarApplication) applyTheme() {
 	app.app.Settings().SetTheme(customTheme.GetApplicationTheme(app.appConfig))
 }
 
-func (app *radarApplication) setupSettingsMenuWindow(ctx context.Context) {
-	onHomeAction := func() {
-		if !app.appConfig.InMainMenu {
-			app.radarWindow.SetFullScreen(false)
-			app.appConfig.FullScreenMode = false
-			app.radarWindow.Hide()
+func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
+	toolbarCreate := createToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
-			app.settingsMenuWindow.CenterOnScreen()
-			app.settingsMenuWindow.Resize(app.appConfig.WindowSize)
-			app.settingsMenuWindow.Show()
-			app.settingsMenuWindow.SetMaster()
+	layout := CatsLayout{Scale: 1, prevSize: app.AppConfig().WindowSize}
+	catsContainer := container.New(&layout, cats...)
+	background := CreateCatsBoard(cats, &layout)
+	app.RadarWindow().Canvas().SetOnTypedRune(RegisterScaleRune(app.RadarWindow(), catsContainer, &layout, app.AppConfig()))
+	content := container.NewStack(background, catsContainer)
 
-			app.appConfig.InMainMenu = true
-		}
-	}
+	//RadarContainer := CreateContentRunWindow(app, cats)
 
-	onThemeAction := func() {
-		app.appConfig.LightThemeFlag = !app.appConfig.LightThemeFlag
-		app.app.Settings().SetTheme(customTheme.GetApplicationTheme(app.appConfig))
-	}
+	return container.NewBorder(toolbarCreate(), nil, nil, nil, content)
+}
 
-	onFullScreenAction := func() {
-		app.appConfig.FullScreenMode = !app.appConfig.FullScreenMode
-		if app.appConfig.InMainMenu {
-			app.settingsMenuWindow.SetFullScreen(app.appConfig.FullScreenMode)
-		} else {
-			app.radarWindow.SetFullScreen(app.appConfig.FullScreenMode)
-		}
-	}
+func (app *radarApplication) createMainWindow(ctx context.Context) {
+	loadWindow := NewLoader("Please wait...", app.appConfig, app.settingsMenuWindow)
 
-	toolbarCreate := CreateToolbarFunction(onHomeAction, onThemeAction, onFullScreenAction)
+	toolbarCreate := createToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
 	radarSettings := view.NewRadarSettings()
 
-	onConfigChoice := func(chosenRadarSettings view.RadarSettings) {
-		app.settingsMenuWindow.SetFullScreen(false)
-		app.appConfig.FullScreenMode = false
-		app.settingsMenuWindow.Hide()
+	onConfigChoice := func(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig) {
+		loadWindow.Start()
+		producer := viewModel.NewProducer(chosenRadarSettings, appConfig)
+		loadWindow.Stop()
 
-		//TODO: move to ViewModel
-		geomImpl := geom.NewSimpleGeom(
-			float64(app.appConfig.WindowSize.Height),
-			float64(app.appConfig.WindowSize.Width),
-			make([]geom.Barrier, 0),
-			geom.EuclideanDistance,
-		)
+		// тут будет канал возвращаться и мы не рисуем, пока первые позицию не вернуться
+		producer.StartAppAction()
 
-		engineImpl := engine.NewEngine(
-			chosenRadarSettings.FightingRadius,
-			chosenRadarSettings.HissingRadius,
-			int64(chosenRadarSettings.CountCats),
-			geomImpl,
-		)
+		app.radarWindow.SetContent(app.createRadarWindowContent())
 
-		engineRunner := engine.NewRunner(engineImpl, 30)
+		app.hideWindow(app.settingsMenuWindow)
+		app.showWindow(app.radarWindow)
+
+		app.appConfig.InMainMenu = false
 
 		app.RunRadarWindow(ctx, engineRunner, chosenRadarSettings.UpdateTime, toolbarCreate)
 	}
@@ -204,10 +187,10 @@ func (app *radarApplication) setupSettingsMenuWindow(ctx context.Context) {
 		dialog.ShowError(err, app.settingsMenuWindow)
 	}
 
-	configChoice := CreateConfigChoiceFunction(radarSettings, onConfigChoice, onConfigChoiceError)
+	configChoice := CreateSettingsChoiceFunction(radarSettings, onConfigChoice, onConfigChoiceError)
 
 	app.settingsMenuWindow.SetContent(
-		container.NewBorder(toolbarCreate(), CreateBottom(), nil, nil, configChoice()),
+		container.NewBorder(toolbarCreate(), createBottom(), nil, nil, configChoice()),
 	)
 	app.settingsMenuWindow.Resize(app.appConfig.WindowSize)
 	app.settingsMenuWindow.CenterOnScreen()

@@ -1,4 +1,4 @@
-package domain
+package viewModel
 
 type Cat struct {
 	X     float32

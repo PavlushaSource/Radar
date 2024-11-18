@@ -1,27 +1,28 @@
-package engine
+package runner
 
 import (
 	"context"
+	"github.com/PavlushaSource/Radar/model/engine"
 )
 
 type Runner interface {
-	Run(ctx context.Context) <-chan State
+	Run(ctx context.Context) <-chan engine.State
 }
 
 type runner struct {
 	bufferSize int64
-	engine     Engine
+	engine     engine.Engine
 }
 
-func NewRunner(engine Engine, bufferSize int64) Runner {
+func NewRunner(engine engine.Engine, bufferSize int64) Runner {
 	return &runner{
 		engine:     engine,
 		bufferSize: bufferSize,
 	}
 }
 
-func (r *runner) Run(ctx context.Context) <-chan State {
-	resCh := make(chan State, r.bufferSize)
+func (r *runner) Run(ctx context.Context) <-chan engine.State {
+	resCh := make(chan engine.State, r.bufferSize)
 
 	go func() {
 		for {
