@@ -85,7 +85,7 @@ func (processor *processor) setUp() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.points[i].Copy(processor.state.cats[i]._point)
+			processor.points[i].Copy(processor.state.cats[i])
 		}()
 	}
 
@@ -99,7 +99,7 @@ func (processor *processor) tearDown() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.state.cats[i]._point.Copy(processor.points[i])
+			processor.state.cats[i].Copy(processor.points[i])
 		}()
 	}
 
@@ -113,7 +113,7 @@ func (processor *processor) moveCats() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.geom.MovePoint(cat._point)
+			processor.geom.MovePoint(cat)
 		}()
 	}
 
@@ -123,7 +123,7 @@ func (processor *processor) moveCats() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			cell := processor.cell(cat._point)
+			cell := processor.cell(cat)
 			processor.cells[cell] = append(processor.cells[cell], i)
 		}()
 	}
@@ -134,12 +134,21 @@ func (processor *processor) moveCats() {
 func (processor *processor) processCatsNeighbours() {
 	var wg sync.WaitGroup
 
-	for i, cat := range processor.state.cats {
+	for i := range processor.state.cats {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			processor.processCatNeighbours(i)
-			processor.updateCatStatus(cat)
+		}()
+	}
+
+	wg.Wait()
+
+	for i := range processor.state.cats {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			processor.updateCatStatus(i)
 		}()
 	}
 
@@ -147,8 +156,7 @@ func (processor *processor) processCatsNeighbours() {
 }
 
 func (processor *processor) processCatNeighbours(catIdx int) {
-	cat := processor.state.cats[catIdx]
-	cell := processor.cell(cat._point)
+	cell := processor.cell(processor.state.cats[catIdx])
 
 	processor.processCell(catIdx, cell)
 	processor.processNeighbourCell(catIdx, cell, processor.tryGetUpCell)
@@ -174,23 +182,21 @@ func (processor *processor) processCell(catIdx int, cell int) {
 }
 
 func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
-	cat := processor.state.cats[catIdx]
-	neighbour := processor.state.cats[neighbourIdx]
-	dist := processor.geom.Distance(cat.point(), neighbour.point())
+	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
 
 	if dist <= processor.state.radiusFight {
-		cat.setStatus(Fighting)
-		neighbour.setStatus(Fighting)
+		processor.state.cats[catIdx].status = Fighting
+		processor.state.cats[neighbourIdx].status = Fighting
 	} else if dist <= processor.state.radiusHiss {
 		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= hissingProbability(dist) {
-			cat.hissing = true
-			neighbour.hissing = true
+			processor.state.cats[catIdx].hissing = true
+			processor.state.cats[neighbourIdx].hissing = true
 		}
 	}
 }
 
-func (processor *processor) updateCatStatus(cat *cat) {
-	if cat.hissing && (cat.status == Calm) {
-		cat.status = Hissing
+func (processor *processor) updateCatStatus(idx int) {
+	if processor.state.cats[idx].hissing && (processor.state.cats[idx].status == Calm) {
+		processor.state.cats[idx].status = Hissing
 	}
 }

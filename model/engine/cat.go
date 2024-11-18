@@ -7,30 +7,18 @@ import (
 type cat struct {
 	status  Status
 	hissing bool
-	_point  geom.Point
+	geom.Point
 }
 
 func (cat *cat) Status() Status {
 	return cat.status
 }
 
-func (cat *cat) X() float64 {
-	return cat._point.X()
-}
+func (cat *cat) copy(dst *cat) {
+	dst.status = cat.status
+	dst.hissing = cat.hissing
 
-func (cat *cat) Y() float64 {
-	return cat._point.Y()
-}
-
-func (cat *cat) Copy(dst Cat) {
-	dst.setStatus(cat.status)
-	dst.setHissing(cat.hissing)
-
-	cat._point.Copy(dst.point())
-}
-
-func (cat *cat) point() geom.Point {
-	return cat._point
+	cat.Point.Copy(dst.Point)
 }
 
 func (cat *cat) setStatus(status Status) {
@@ -52,7 +40,7 @@ func newCat(point geom.Point) *cat {
 	cat.status = Calm
 	cat.hissing = false
 
-	cat._point = point
+	cat.Point = point
 
 	return cat
 }
