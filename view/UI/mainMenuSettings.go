@@ -37,7 +37,7 @@ const (
 	resetText = "Reset"
 )
 
-func CreateConfigChoiceFunction(
+func CreateSettingsChoiceFunction(
 	radarSettings view.RadarSettings,
 	onConfigChoice func(chosenRadarSettings view.RadarSettings),
 	onConfigChoiceError func(err error),
