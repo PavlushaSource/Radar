@@ -21,11 +21,12 @@ type ApplicationConfig struct {
 
 func NewApplicationConfig() ApplicationConfig {
 	return ApplicationConfig{
-		WindowSize:       fyne.NewSize(WindowH, WindowW),
-		CatSize:          fyne.NewSize(CatSize, CatSize),
-		LightThemeFlag:   true,
-		FullScreenMode:   false,
-		InMainMenu:       true,
-		ScaleEngineCoord: fyne.NewSize(1, 1),
+		WindowSize:         fyne.NewSize(WindowH, WindowW),
+		CatSize:            fyne.NewSize(CatSize, CatSize),
+		LightThemeFlag:     true,
+		FullScreenMode:     false,
+		InMainMenu:         true,
+		ScaleEngineCoord:   fyne.NewSize(1, 1),
+		PaddingEngineCoord: fyne.NewPos(0, 0),
 	}
 }

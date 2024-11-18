@@ -7,11 +7,13 @@ import (
 	"github.com/PavlushaSource/Radar/view/api"
 )
 
-func ConvertStateToVMCat(state engine.State, scaleEngineCoord fyne.Size) []api.Cat {
+func ConvertStateToVMCat(state engine.State, scaleEngineCoord fyne.Size, paddingEngineCoord fyne.Position) []api.Cat {
 	vmCats := make([]api.Cat, 0, state.NumCats())
 
 	for _, c := range state.Cats() {
-		vmCats = append(vmCats, api.Cat{X: float32(c.X()) * scaleEngineCoord.Width, Y: float32(c.Y()) * scaleEngineCoord.Height, Color: ConvertStatusToColor(c)})
+		x := float32(c.X())*scaleEngineCoord.Width + paddingEngineCoord.X
+		y := float32(c.Y())*scaleEngineCoord.Height + paddingEngineCoord.Y
+		vmCats = append(vmCats, api.Cat{X: x, Y: y, Color: ConvertStatusToColor(c)})
 	}
 
 	return vmCats

@@ -57,10 +57,10 @@ func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	engineStateCh := p.runner.Run(ctx)
 
 	// Initial cats positions
-	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord), p.appConfig.CatSize)
+	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
 
 	catsUpdater := func() {
-		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord), p.appConfig.CatSize)
+		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
 		wg := sync.WaitGroup{}
 		fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {
