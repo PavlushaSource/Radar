@@ -6,80 +6,19 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
-type state struct {
-	height      float64
-	width       float64
-	radiusHiss  float64
-	radiusFight float64
-	cats        []*cat
+type State struct {
+	cats []*Cat
 }
 
-func (state *state) Height() float64 {
-	return state.height
-}
-
-func (state *state) Width() float64 {
-	return state.width
-}
-
-func (state *state) RadiusHiss() float64 {
-	return state.radiusHiss
-}
-
-func (state *state) RadiusFight() float64 {
-	return state.radiusFight
-}
-
-func (state *state) NumCats() int {
+func (state *State) NumCats() int {
 	return len(state.cats)
 }
 
-func (state *state) CatsElementAt(idx int) Cat {
+func (state *State) CatsElementAt(idx int) *Cat {
 	return state.cats[idx]
 }
 
-func (state *state) Copy(dst State) {
-	dst.setHeight(state.height)
-	dst.setWidth(state.width)
-	dst.setRadiusHiss(state.radiusHiss)
-	dst.setRadiusFight(state.radiusFight)
-
-	dst.copyCatsFrom(state.cats)
-}
-
-func (state *state) setHeight(height float64) {
-	state.height = height
-}
-
-func (state *state) setWidth(width float64) {
-	state.width = width
-}
-
-func (state *state) setRadiusHiss(radiusHiss float64) {
-	state.radiusHiss = radiusHiss
-}
-
-func (state *state) setRadiusFight(radiusFight float64) {
-	state.radiusFight = radiusFight
-}
-
-func (state *state) copyCatsFrom(src []*cat) {
-	var wg sync.WaitGroup
-
-	state.cats = state.cats[:len(src)]
-
-	for i := range src {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			src[i].Copy(state.cats[i])
-		}()
-	}
-
-	wg.Wait()
-}
-
-func (state *state) clean() {
+func (state *State) clean() {
 	var wg sync.WaitGroup
 
 	for _, cat := range state.cats {
@@ -93,15 +32,10 @@ func (state *state) clean() {
 	wg.Wait()
 }
 
-func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) *state {
-	state := new(state)
+func newState(numCats int, geom geom.Geom) *State {
+	state := new(State)
 
-	state.height = height
-	state.width = width
-	state.radiusFight = radiusFight
-	state.radiusHiss = radiusHiss
-
-	state.cats = make([]*cat, 0, numCats)
+	state.cats = make([]*Cat, 0, numCats)
 	for i := 0; i < numCats; i++ {
 		state.cats = append(state.cats, newCat(geom.NewPoint()))
 	}
