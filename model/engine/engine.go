@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/PavlushaSource/Radar/model/core/rnd"
@@ -23,7 +22,6 @@ func (engine *Engine) Run(ctx context.Context) (chan *State, chan *State) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			fmt.Println("state creation")
 			buffCh <- newState(engine.processor.numCats, engine.processor.geom)
 		}()
 	}
