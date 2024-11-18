@@ -14,7 +14,7 @@ func createLink(text, link string) fyne.CanvasObject {
 	return widget.NewHyperlink(text, parsedUrl)
 }
 
-func createBottom() fyne.CanvasObject {
+func CreateBottom() fyne.CanvasObject {
 	// TODO: Change to rectangle with link
 	texts := container.NewHBox(widget.NewLabel("tepa46, Arsene-Baitenov, PavlushaSoure"),
 		layout.NewSpacer(),
