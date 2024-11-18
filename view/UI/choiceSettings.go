@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/PavlushaSource/Radar/view"
+	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 )
 
@@ -39,7 +40,8 @@ const (
 
 func CreateSettingsChoiceFunction(
 	radarSettings view.RadarSettings,
-	onConfigChoice func(chosenRadarSettings view.RadarSettings),
+	appConfig config.ApplicationConfig,
+	onConfigChoice func(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig),
 	onConfigChoiceError func(err error),
 ) func() fyne.CanvasObject {
 	return func() fyne.CanvasObject {
@@ -105,7 +107,7 @@ func CreateSettingsChoiceFunction(
 				if resErr != nil {
 					onConfigChoiceError(resErr)
 				} else {
-					onConfigChoice(radarSettings)
+					onConfigChoice(radarSettings, appConfig)
 				}
 			},
 			SubmitText: runText,
