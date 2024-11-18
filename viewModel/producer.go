@@ -6,37 +6,24 @@ import (
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/model/runner"
-	"github.com/PavlushaSource/Radar/view"
+	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"sync"
 	"time"
 )
 
-var choiceDistanceCalcType = map[view.DistanceType]geom.Distance{
-	view.Euclidean:   geom.EuclideanDistance,
-	view.Manhattan:   geom.ManhattanDistance,
-	view.Curvilinear: geom.CurvilinearDistance,
-}
-
-type geomCreateFunction func(height float64, width float64, barriers []geom.Barrier, distance geom.Distance) geom.Geom
-
-var choiceGeometryCalcType = map[view.GeometryType]geomCreateFunction{
-	view.Simple: geom.NewSimpleGeom,
-	view.Vector: geom.NewVectorGeom,
-}
-
 type Producer interface {
 	StartAppAction(context.Context) []fyne.CanvasObject
 }
 
 type producer struct {
-	chosenRadarSettings view.RadarSettings
+	chosenRadarSettings api.RadarSettings
 	appConfig           config.ApplicationConfig
 	runner              runner.Runner
 }
 
-func NewProducer(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig) Producer {
+func NewProducer(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) Producer {
 	return &producer{
 		chosenRadarSettings: chosenRadarSettings,
 		appConfig:           appConfig,
@@ -44,14 +31,14 @@ func NewProducer(chosenRadarSettings view.RadarSettings, appConfig config.Applic
 	}
 }
 
-func newEngineRunner(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig) runner.Runner {
-	geomCreateFunc := choiceGeometryCalcType[chosenRadarSettings.GeometryType]
+func newEngineRunner(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) runner.Runner {
+	geomCreateFunc := ConvertGeometryTypeToGeometry(chosenRadarSettings.GeometryType)
 
 	geomImpl := geomCreateFunc(
 		float64(appConfig.WindowSize.Height),
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
-		choiceDistanceCalcType[chosenRadarSettings.DistanceType],
+		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 	)
 
 	engineImpl := engine.NewEngine(
@@ -64,20 +51,28 @@ func newEngineRunner(chosenRadarSettings view.RadarSettings, appConfig config.Ap
 	return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
+// StartAppAction TODO: in viewModel we must work with view Api, not directly with CanvasObjects
 func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	engineStateCh := p.runner.Run(ctx)
 
 	// Initial cats positions
-	cats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
 
 	catsUpdater := func() {
-		uiCats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
 		wg := sync.WaitGroup{}
 		for i, c := range uiCats {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				utils.AnimateCat(cats[i].Position(), c.Position(), cats[i], 100)
+
+				utils.AnimateCat(
+					cats[i].Position(),
+					c.Position(),
+					cats[i],
+					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()),
+				)
+
 			}()
 		}
 		wg.Wait()
@@ -90,6 +85,7 @@ func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	return cats
 }
 
+// TODO: move to external core package
 func withTicker(ctx context.Context, ticker <-chan time.Time, action func()) {
 	go func() {
 		for {
@@ -103,39 +99,3 @@ func withTicker(ctx context.Context, ticker <-chan time.Time, action func()) {
 		}
 	}()
 }
-
-//func (p *producer) StartAppAction(ctx context.Context) chan []fyne.CanvasObject {
-//	UICatChannel := make(chan []fyne.CanvasObject, p.chosenRadarSettings.BufferSize)
-//
-//	engineStateCh := p.runner.Run(ctx)
-//
-//	// TODO нужно одна init состояние для UICats, потом можно просто этот массив мувать и не переприсваивать
-//	// Первое чтение из канала как раз вычитает Init
-//	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
-//	go func() {
-//		for {
-//			select {
-//			case <-ctx.Done():
-//				return
-//			// TODO put in ticker one value for init without timeout
-//			case <-ticker:
-//				uiCats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
-//				wg := sync.WaitGroup{}
-//				for i, c := range uiCats {
-//					wg.Add(1)
-//					go func() {
-//						defer wg.Done()
-//						view.AnimateCat(UICats[i].Position(), c.Position(), UICats[i], 100)
-//
-//						// TODO это не нужно делать, только поменять svg в случае смены цвета
-//						UICats[i] = c
-//					}()
-//				}
-//				wg.Wait()
-//
-//			}
-//		}
-//	}()
-//
-//	return UICatChannel
-//}

@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/PavlushaSource/Radar/view/UI"
+	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/customTheme"
 	"github.com/PavlushaSource/Radar/viewModel"
@@ -134,12 +135,12 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 	loadWindow := UI.NewLoader("Please wait...", loadWindowSize, app.settingsMenuWindow)
 
 	toolbarCreateFunction := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
-	radarSettings := NewRadarSettings()
+	radarSettings := api.NewRadarSettings()
 
-	onConfigChoice := func(chosenRadarSettings RadarSettings, appConfig config.ApplicationConfig) {
+	onConfigChoice := func(chosenRadarSettings api.RadarSettings) {
 		loadWindow.Start()
 
-		producer := viewModel.NewProducer(chosenRadarSettings, appConfig)
+		producer := viewModel.NewProducer(chosenRadarSettings, app.appConfig)
 		canvasCats := producer.StartAppAction(ctx)
 
 		loadWindow.Stop()
@@ -156,7 +157,7 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 		dialog.ShowError(err, app.settingsMenuWindow)
 	}
 
-	configChoice := UI.CreateSettingsChoiceFunction(radarSettings, app.appConfig, onConfigChoice, onConfigChoiceError)
+	configChoice := UI.CreateSettingsChoiceFunction(radarSettings, onConfigChoice, onConfigChoiceError)
 
 	app.settingsMenuWindow.SetContent(
 		container.NewBorder(toolbarCreateFunction(), UI.CreateBottom(), nil, nil, configChoice()),

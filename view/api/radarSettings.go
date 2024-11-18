@@ -1,24 +1,9 @@
-package view
+package api
 
 import (
 	"fmt"
 	"strconv"
 	"time"
-)
-
-type DistanceType uint8
-
-const (
-	Euclidean DistanceType = iota
-	Manhattan
-	Curvilinear
-)
-
-type GeometryType uint8
-
-const (
-	Simple GeometryType = iota
-	Vector
 )
 
 type RadarSettings struct {
@@ -28,18 +13,6 @@ type RadarSettings struct {
 	FightingRadius, HissingRadius float64
 	BufferSize                    int64
 	GeometryType                  GeometryType
-}
-
-func NewRadarSettings() RadarSettings {
-	return RadarSettings{
-		DistanceType:   Euclidean,
-		UpdateTime:     time.Millisecond * 2000,
-		CountCats:      25,
-		FightingRadius: 100,
-		HissingRadius:  200,
-		BufferSize:     16,
-		GeometryType:   Simple,
-	}
 }
 
 func (c *RadarSettings) SetCountCats(s string) error {
@@ -94,4 +67,16 @@ func (c *RadarSettings) SetHissingRadius(s string) error {
 
 	c.HissingRadius = r
 	return nil
+}
+
+func NewRadarSettings() RadarSettings {
+	return RadarSettings{
+		DistanceType:   Euclidean,
+		UpdateTime:     time.Millisecond * 2000,
+		CountCats:      25,
+		FightingRadius: 100,
+		HissingRadius:  200,
+		BufferSize:     16,
+		GeometryType:   Simple,
+	}
 }

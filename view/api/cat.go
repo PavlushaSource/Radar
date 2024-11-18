@@ -1,4 +1,4 @@
-package viewModel
+package api
 
 type Cat struct {
 	X     float32
