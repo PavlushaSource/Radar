@@ -15,19 +15,12 @@ type Cat interface {
 	X() float64
 	Y() float64
 
-	NumHissings() int
-	HissingsElementAt(idx int) int
-	NumFightings() int
-	FightingsElementAt(idx int) int
-
 	Copy(dst Cat)
 
 	point() geom.Point
 
 	setStatus(status Status)
 	setHissing(hissing bool)
-	copyHissingsFrom(src []int)
-	copyFightingsFrom(src []int)
 }
 
 type State interface {
