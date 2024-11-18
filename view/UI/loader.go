@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
-	"github.com/PavlushaSource/Radar/view/config"
 	"image/color"
 )
 
@@ -24,10 +23,10 @@ type loader struct {
 	win      fyne.Window
 }
 
-func NewLoader(text string, appConfig config.ApplicationConfig, win fyne.Window) Loader {
+func NewLoader(text string, size fyne.Size, win fyne.Window) Loader {
 	return &loader{
 		activityText: text,
-		size:         fyne.NewSize(appConfig.WindowSize.Width/4, appConfig.WindowSize.Height/4),
+		size:         size,
 		win:          win,
 	}
 }

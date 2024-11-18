@@ -1,4 +1,4 @@
-package view
+package utils
 
 import (
 	"fyne.io/fyne/v2"

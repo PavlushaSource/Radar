@@ -51,8 +51,10 @@ func (app *radarApplication) RadarWindow() fyne.Window {
 func (app *radarApplication) Run(ctx context.Context) {
 	app.applyTheme()
 
-	app.createMainWindow(ctx)
-	app.settingsMenuWindow.ShowAndRun()
+	app.createMainWindowContent(ctx)
+	app.showWindow(app.settingsMenuWindow)
+
+	app.app.Run()
 }
 
 func (app *radarApplication) hideWindow(window fyne.Window) {
@@ -104,7 +106,11 @@ func (app *radarApplication) registerScaleKeyboard(catsContainer fyne.CanvasObje
 		} else {
 			return
 		}
-		nextSize := fyne.Size{Width: app.appConfig.WindowSize.Width * layout.Scale, Height: app.appConfig.WindowSize.Height * layout.Scale}
+
+		nextSize := fyne.Size{
+			Width:  app.appConfig.WindowSize.Width * layout.Scale,
+			Height: app.appConfig.WindowSize.Height * layout.Scale,
+		}
 
 		catsContainer.Resize(nextSize)
 	}
@@ -116,26 +122,29 @@ func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) 
 	layout := UI.CatsLayout{Scale: 1, PrevSize: app.AppConfig().WindowSize}
 	catsContainer := container.New(&layout, cats...)
 	background := UI.CreateCatsBoard(cats, &layout)
-	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))
 	content := container.NewStack(background, catsContainer)
+
+	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))
 
 	return container.NewBorder(toolbarCreate(), nil, nil, nil, content)
 }
 
-func (app *radarApplication) createMainWindow(ctx context.Context) {
-	loadWindow := UI.NewLoader("Please wait...", app.appConfig, app.settingsMenuWindow)
+func (app *radarApplication) createMainWindowContent(ctx context.Context) {
+	loadWindowSize := fyne.NewSize(app.appConfig.WindowSize.Width/4, app.appConfig.WindowSize.Height/4)
+	loadWindow := UI.NewLoader("Please wait...", loadWindowSize, app.settingsMenuWindow)
+
 	toolbarCreateFunction := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 	radarSettings := NewRadarSettings()
 
 	onConfigChoice := func(chosenRadarSettings RadarSettings, appConfig config.ApplicationConfig) {
 		loadWindow.Start()
+
 		producer := viewModel.NewProducer(chosenRadarSettings, appConfig)
+		canvasCats := producer.StartAppAction(ctx)
+
 		loadWindow.Stop()
 
-		// тут будет канал возвращаться и мы не рисуем, пока первые позицию не вернуться
-		canvasCatsChannel := producer.StartAppAction(ctx)
-
-		app.radarWindow.SetContent(app.createRadarWindowContent(<-canvasCatsChannel))
+		app.radarWindow.SetContent(app.createRadarWindowContent(canvasCats))
 
 		app.hideWindow(app.settingsMenuWindow)
 		app.showWindow(app.radarWindow)
@@ -152,8 +161,6 @@ func (app *radarApplication) createMainWindow(ctx context.Context) {
 	app.settingsMenuWindow.SetContent(
 		container.NewBorder(toolbarCreateFunction(), UI.CreateBottom(), nil, nil, configChoice()),
 	)
-	app.settingsMenuWindow.Resize(app.appConfig.WindowSize)
-	app.settingsMenuWindow.CenterOnScreen()
 }
 
 func NewApplication() RadarApplication {
