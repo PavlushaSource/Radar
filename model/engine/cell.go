@@ -16,17 +16,17 @@ func numRows(height float64, radius float64) int {
 	return int(math.Ceil(height / radius))
 }
 
-func (engine *engine) cell(point geom.Point) int {
-	column := int(math.Trunc(point.X() / engine.radius))
-	row := int(math.Trunc(point.Y() / engine.radius))
-	return column*engine.numRows + row
+func (processor *processor) cell(point geom.Point) int {
+	column := int(math.Trunc(point.X() / processor.radius))
+	row := int(math.Trunc(point.Y() / processor.radius))
+	return column*processor.numRows + row
 }
 
-func (engine *engine) checkCellColumnRow(column int, row int) bool {
-	if 0 > row || row >= engine.numRows {
+func (processor *processor) checkCellColumnRow(column int, row int) bool {
+	if 0 > row || row >= processor.numRows {
 		return false
 	}
-	if 0 > column || column >= engine.numColumns {
+	if 0 > column || column >= processor.numColumns {
 		return false
 	}
 	return true
@@ -34,82 +34,82 @@ func (engine *engine) checkCellColumnRow(column int, row int) bool {
 
 type neighbourCellExtractor func(cell int) (bool, int)
 
-func (engine *engine) tryGetUpCell(cell int) (bool, int) {
-	column := cell / engine.numRows
-	row := cell%engine.numRows + 1
+func (processor *processor) tryGetUpCell(cell int) (bool, int) {
+	column := cell / processor.numRows
+	row := cell%processor.numRows + 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetDownCell(cell int) (bool, int) {
-	column := cell / engine.numRows
-	row := cell%engine.numRows - 1
+func (processor *processor) tryGetDownCell(cell int) (bool, int) {
+	column := cell / processor.numRows
+	row := cell%processor.numRows - 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetLeftCell(cell int) (bool, int) {
-	column := cell/engine.numRows - 1
-	row := cell % engine.numRows
+func (processor *processor) tryGetLeftCell(cell int) (bool, int) {
+	column := cell/processor.numRows - 1
+	row := cell % processor.numRows
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetRightCell(cell int) (bool, int) {
-	column := cell/engine.numRows + 1
-	row := cell % engine.numRows
+func (processor *processor) tryGetRightCell(cell int) (bool, int) {
+	column := cell/processor.numRows + 1
+	row := cell % processor.numRows
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetUpLeftCell(cell int) (bool, int) {
-	column := cell/engine.numRows - 1
-	row := cell%engine.numRows + 1
+func (processor *processor) tryGetUpLeftCell(cell int) (bool, int) {
+	column := cell/processor.numRows - 1
+	row := cell%processor.numRows + 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetUpRightCell(cell int) (bool, int) {
-	column := cell/engine.numRows + 1
-	row := cell%engine.numRows + 1
+func (processor *processor) tryGetUpRightCell(cell int) (bool, int) {
+	column := cell/processor.numRows + 1
+	row := cell%processor.numRows + 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetDownLeftCell(cell int) (bool, int) {
-	column := cell/engine.numRows - 1
-	row := cell%engine.numRows - 1
+func (processor *processor) tryGetDownLeftCell(cell int) (bool, int) {
+	column := cell/processor.numRows - 1
+	row := cell%processor.numRows - 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
 
-func (engine *engine) tryGetDownRightCell(cell int) (bool, int) {
-	column := cell/engine.numRows + 1
-	row := cell%engine.numRows - 1
+func (processor *processor) tryGetDownRightCell(cell int) (bool, int) {
+	column := cell/processor.numRows + 1
+	row := cell%processor.numRows - 1
 
-	if !engine.checkCellColumnRow(column, row) {
+	if !processor.checkCellColumnRow(column, row) {
 		return false, cellDefault
 	}
-	return true, column*engine.numRows + row
+	return true, column*processor.numRows + row
 }
