@@ -4,56 +4,16 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
-type Status int
-
-const (
-	Calm Status = iota
-	Hissing
-	Fighting
-)
-
-type hissingFilter func(int) bool
-
-type Cat interface {
-	Status() Status
-	X() float64
-	Y() float64
-
-	NumHissings() int
-	HissingsElementAt(idx int) int
-	NumFightings() int
-	FightingsElementAt(idx int) int
-
-	Copy(dst Cat)
-
-	point() geom.Point
-
-	setStatus(status Status)
-
-	hissing() bool
-	setHissing(hissing bool)
-
-	addHissing(hissingCat int)
-	addFighting(fightingCat int)
-
-	filterHissings(hissingFilter hissingFilter)
-
-	copyHissingsFrom(src []int)
-	copyFightingsFrom(src []int)
-
-	clean()
-}
-
 type cat struct {
-	_status    Status
-	_hissing   bool
-	_hissings  []int
-	_fightings []int
-	_point     geom.Point
+	status    Status
+	hissing   bool
+	hissings  []int
+	fightings []int
+	_point    geom.Point
 }
 
 func (cat *cat) Status() Status {
-	return cat._status
+	return cat.status
 }
 
 func (cat *cat) X() float64 {
@@ -65,26 +25,26 @@ func (cat *cat) Y() float64 {
 }
 
 func (cat *cat) NumHissings() int {
-	return len(cat._hissings)
+	return len(cat.hissings)
 }
 
 func (cat *cat) HissingsElementAt(idx int) int {
-	return cat._hissings[idx]
+	return cat.hissings[idx]
 }
 
 func (cat *cat) NumFightings() int {
-	return len(cat._fightings)
+	return len(cat.fightings)
 }
 
 func (cat *cat) FightingsElementAt(idx int) int {
-	return cat._fightings[idx]
+	return cat.fightings[idx]
 }
 
 func (cat *cat) Copy(dst Cat) {
-	dst.setStatus(cat._status)
-	dst.setHissing(cat._hissing)
-	dst.copyHissingsFrom(cat._hissings)
-	dst.copyFightingsFrom(cat._fightings)
+	dst.setStatus(cat.status)
+	dst.setHissing(cat.hissing)
+	dst.copyHissingsFrom(cat.hissings)
+	dst.copyFightingsFrom(cat.fightings)
 
 	cat._point.Copy(dst.point())
 }
@@ -94,63 +54,40 @@ func (cat *cat) point() geom.Point {
 }
 
 func (cat *cat) setStatus(status Status) {
-	cat._status = status
-}
-
-func (cat *cat) hissing() bool {
-	return cat._hissing
+	cat.status = status
 }
 
 func (cat *cat) setHissing(hissing bool) {
-	cat._hissing = hissing
-}
-
-func (cat *cat) addHissing(hissingCat int) {
-	cat._hissings = append(cat._hissings, hissingCat)
-}
-
-func (cat *cat) addFighting(fightingCat int) {
-	cat._fightings = append(cat._fightings, fightingCat)
-}
-
-func (cat *cat) filterHissings(hissingFilter hissingFilter) {
-	n := 0
-	for _, h := range cat._hissings {
-		if hissingFilter(h) {
-			cat._hissings[n] = h
-			n++
-		}
-	}
-	cat._hissings = cat._hissings[:n]
+	cat.hissing = hissing
 }
 
 func (cat *cat) copyHissingsFrom(src []int) {
-	cat._hissings = cat._hissings[:len(src)]
+	cat.hissings = cat.hissings[:len(src)]
 
-	copy(cat._hissings, src)
+	copy(cat.hissings, src)
 }
 
 func (cat *cat) copyFightingsFrom(src []int) {
-	cat._fightings = cat._fightings[:len(src)]
+	cat.fightings = cat.fightings[:len(src)]
 
-	copy(cat._fightings, src)
+	copy(cat.fightings, src)
 }
 
 func (cat *cat) clean() {
-	cat._status = Calm
-	cat._hissing = false
-	cat._hissings = cat._hissings[:0]
-	cat._fightings = cat._fightings[:0]
+	cat.status = Calm
+	cat.hissing = false
+	cat.hissings = cat.hissings[:0]
+	cat.fightings = cat.fightings[:0]
 }
 
-func newCat(point geom.Point, numCats int) Cat {
+func newCat(point geom.Point, numCats int) *cat {
 	cat := new(cat)
 
-	cat._status = Calm
-	cat._hissing = false
+	cat.status = Calm
+	cat.hissing = false
 
-	cat._hissings = make([]int, 0, numCats)
-	cat._fightings = make([]int, 0, numCats)
+	cat.hissings = make([]int, 0, numCats)
+	cat.fightings = make([]int, 0, numCats)
 
 	cat._point = point
 

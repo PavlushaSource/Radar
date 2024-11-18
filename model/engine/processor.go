@@ -3,20 +3,35 @@ package engine
 import "sync"
 
 func (engine *engine) moveCats() {
-	for i, cat := range engine.state.Cats() {
-		engine.geom.MovePoint(cat.Point())
+	var wg sync.WaitGroup
 
-		cell := engine.cell(cat.Point())
-		engine.cells[cell] = append(engine.cells[cell], i)
+	for _, cat := range engine.state.cats {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.geom.MovePoint(cat._point)
+		}()
 	}
+
+	wg.Wait()
+
+	for i, cat := range engine.state.cats {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cell := engine.cell(cat._point)
+			engine.cells[cell] = append(engine.cells[cell], i)
+		}()
+	}
+
+	wg.Wait()
 }
 
 func (engine *engine) processCatsNeighbours() {
 	var wg sync.WaitGroup
 
-	for i := range engine.state.Cats() {
+	for i := range engine.state.cats {
 		wg.Add(1)
-
 		go func() {
 			defer wg.Done()
 			engine.processCatNeighbours(i)
@@ -25,88 +40,89 @@ func (engine *engine) processCatsNeighbours() {
 
 	wg.Wait()
 
-	for i := range engine.state.Cats() {
-		wg.Add(1)
-
+	for i, cat := range engine.state.cats {
+		wg.Add(2)
 		go func() {
 			defer wg.Done()
 			engine.postprocessCatHissings(i)
 		}()
+
+		go func() {
+			defer wg.Done()
+			engine.updateCatStatus(cat)
+		}()
 	}
 
 	wg.Wait()
-
-	engine.updateCatsStatus()
 }
 
-func (engine *engine) processCatNeighbours(idx int) {
-	cell := engine.cell(engine.state.Cats()[idx].Point())
+func (engine *engine) processCatNeighbours(catIdx int) {
+	cat := engine.state.cats[catIdx]
+	cell := engine.cell(cat._point)
 
-	engine.processCell(idx, cell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetUpCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetDownCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetLeftCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetRightCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetUpLeftCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetUpRightCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetDownLeftCell)
-	engine.processNeighbourCell(idx, cell, engine.tryGetDownRightCell)
+	engine.processCell(catIdx, cell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetUpCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetDownCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetLeftCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetRightCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetUpLeftCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetUpRightCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetDownLeftCell)
+	engine.processNeighbourCell(catIdx, cell, engine.tryGetDownRightCell)
 }
 
-func (engine *engine) processNeighbourCell(cat int, cell int64, tryGetNeighbourCell neighbourCellExtractor) {
+func (engine *engine) processNeighbourCell(catIdx int, cell int, tryGetNeighbourCell neighbourCellExtractor) {
 	if success, neighbourCell := tryGetNeighbourCell(cell); success {
-		engine.processCell(cat, neighbourCell)
+		engine.processCell(catIdx, neighbourCell)
 	}
 }
 
-// TODO: change call of proccessPair to async
-func (engine *engine) processCell(cat int, cell int64) {
+func (engine *engine) processCell(catIdx int, cell int) {
 	for _, neighbour := range engine.cells[cell] {
-		engine.proccessPair(cat, neighbour)
+		engine.proccessPair(catIdx, neighbour)
 	}
 }
 
-func (engine *engine) proccessPair(cat int, neighbour int) {
-	cats := engine.state.Cats()
-	dist := engine.geom.Distance(cats[cat].Point(), cats[neighbour].Point())
-	if dist <= engine.state.RadiusFight() {
-		cats[cat].setStatus(Fighting)
-		cats[neighbour].setStatus(Fighting)
+func (engine *engine) proccessPair(catIdx int, neighbourIdx int) {
+	cat := engine.state.cats[catIdx]
+	neighbour := engine.state.cats[neighbourIdx]
+	dist := engine.geom.Distance(cat.point(), neighbour.point())
 
-		// cats[cat].setFightings(append(cats[cat].Fightings(), neighbour))
-	} else if dist <= engine.state.RadiusHiss() {
-		if engine.rndCores[cat].Float64() <= hissingProbability(dist) {
-			cats[cat].setHissing(true)
-			cats[neighbour].setHissing(true)
+	if dist <= engine.state.radiusFight {
+		cat.setStatus(Fighting)
+		neighbour.setStatus(Fighting)
 
-			// engine.hissings[cat][neighbour] = true
+		cat.fightings = append(cat.fightings, neighbourIdx)
+	} else if dist <= engine.state.radiusHiss {
+		if engine.rndCores[catIdx].Float64() <= hissingProbability(dist) {
+			cat.hissing = true
+			neighbour.hissing = true
+
+			engine.hissings[catIdx][neighbourIdx] = true
 		}
 
-		// cats[cat].setHissings(append(cats[cat].Hissings(), neighbour))
+		cat.hissings = append(cat.hissings, neighbourIdx)
 	}
 }
 
-func (engine *engine) postprocessCatHissings(idx int) {
-	return
-	cat := engine.state.Cats()[idx]
-	if !cat.isHissing() {
+func (engine *engine) postprocessCatHissings(catIdx int) {
+	cat := engine.state.cats[catIdx]
+	if !cat.hissing {
 		return
 	}
 
-	hissings := make([]int, 0, len(cat.Hissings()))
-	for _, neighbour := range cat.Hissings() {
-		if engine.hissings[idx][neighbour] || engine.hissings[neighbour][idx] {
-			hissings = append(hissings, neighbour)
+	n := 0
+	for _, neighbour := range cat.hissings {
+		if engine.hissings[catIdx][neighbour] || engine.hissings[neighbour][catIdx] {
+			cat.hissings[n] = neighbour
+			n++
 		}
 	}
-
-	engine.state.Cats()[idx].setHissings(hissings)
+	cat.hissings = cat.hissings[:n]
 }
 
-func (engine *engine) updateCatsStatus() {
-	for _, cat := range engine.state.Cats() {
-		if cat.isHissing() && (cat.Status() == Calm) {
-			cat.setStatus(Hissing)
-		}
+func (engine *engine) updateCatStatus(cat *cat) {
+	if cat.hissing && (cat.status == Calm) {
+		cat.status = Hissing
 	}
 }
