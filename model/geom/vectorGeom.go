@@ -4,6 +4,8 @@ import (
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/PavlushaSource/Radar/model/core/rnd"
 )
 
 const maxPointMovingDegree = 359
@@ -13,8 +15,8 @@ type vectorGeom struct {
 }
 
 func (geom *vectorGeom) MovePoint(point Point) {
-	distance := geom.rng.Float64() * math.Max(geom.width, geom.width)
-	degree := geom.rng.Float64() * maxPointMovingDegree
+	distance := geom.rndAsync.Float64ByFloat64(point.X()) * math.Max(geom.width, geom.width)
+	degree := geom.rndAsync.Float64ByFloat64(point.Y()) * maxPointMovingDegree
 
 	radians := degree * math.Pi / 180.0
 
@@ -24,12 +26,13 @@ func (geom *vectorGeom) MovePoint(point Point) {
 	point.set(x, y)
 }
 
-func NewVectorGeom(height float64, width float64, barriers []Barrier, distance Distance) Geom {
+func NewVectorGeom(height float64, width float64, barriers []Barrier, distance Distance, rndAsync rnd.RndAsync) Geom {
 	geom := new(vectorGeom)
 	geom.height = height
 	geom.width = width
 	geom.barriers = barriers
 	geom.distance = distance
-	geom.rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+	geom.rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
+	geom.rndAsync = rndAsync
 	return geom
 }
