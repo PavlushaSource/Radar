@@ -2,24 +2,21 @@ package engine
 
 import (
 	"math/rand"
+	"sync"
 
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
-type Engine interface {
-	Run() State
-}
-
 type engine struct {
-	state State
+	state *state
 
 	geom   geom.Geom
 	radius float64
 
 	rndCores []*rand.Rand
 
-	numColumns int64
-	numRows    int64
+	numColumns int
+	numRows    int
 	cells      [][]int
 
 	hissings [][]bool
@@ -36,44 +33,77 @@ func (engine *engine) Run() State {
 }
 
 func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) Engine {
+	var wg sync.WaitGroup
+
 	engine := new(engine)
 
 	engine.geom = geom
 	engine.state = newState(geom.Height(), geom.Width(), radiusFight, radiusHiss, numCats, geom)
 	engine.radius = radiusHiss
 
-	engine.rndCores = make([]*rand.Rand, 0, numCats)
-	for i := 0; i < numCats; i++ {
-		engine.rndCores = append(engine.rndCores, newRndCore())
+	engine.rndCores = make([]*rand.Rand, numCats)
+	for i := range engine.rndCores {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.rndCores[i] = newRndCore()
+		}()
 	}
 
 	engine.numColumns = numColumns(geom.Width(), radiusHiss)
 	engine.numRows = numRows(geom.Height(), radiusHiss)
 	numCells := engine.numColumns * engine.numRows
-	engine.cells = make([][]int, 0, numCells)
-
-	for i := int64(0); i < numCells; i++ {
-		engine.cells = append(engine.cells, make([]int, 0, numCats))
+	engine.cells = make([][]int, numCells)
+	for i := range engine.cells {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.cells[i] = make([]int, 0, numCats)
+		}()
 	}
 
-	engine.hissings = make([][]bool, 0, numCats)
-	for i := 0; i < numCats; i++ {
-		engine.hissings = append(engine.hissings, make([]bool, numCats))
+	engine.hissings = make([][]bool, numCats)
+	for i := range engine.hissings {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.hissings[i] = make([]bool, numCats)
+		}()
 	}
 
+	wg.Wait()
 	return engine
 }
 
 func (engine *engine) clean() {
+	var wg sync.WaitGroup
+
 	for i := range engine.cells {
-		capacity := cap(engine.cells[i])
-		engine.cells[i] = make([]int, 0, capacity)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.cells[i] = engine.cells[i][:0]
+		}()
 	}
 
-	engine.hissings = make([][]bool, 0, engine.state.NumCats())
-	for i := 0; i < engine.state.NumCats(); i++ {
-		engine.hissings = append(engine.hissings, make([]bool, engine.state.NumCats()))
+	engine.hissings = make([][]bool, engine.state.NumCats())
+	for i := range engine.hissings {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			engine.hissings[i] = make([]bool, engine.state.NumCats())
+		}()
 	}
+
+	// runBlocking(
+	// 	&engine.hissings,
+	// 	func(i int, _ []bool) {
+	// 		for j := 0; j < engine.state.NumCats(); j++ {
+	// 			engine.hissings[i][j] = false
+	// 		}
+	// 	})
 
 	engine.state.clean()
+
+	wg.Wait()
 }
