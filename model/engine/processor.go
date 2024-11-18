@@ -184,6 +184,9 @@ func (processor *processor) processNeighbourCell(catIdx int, cell int, tryGetNei
 
 func (processor *processor) processCell(catIdx int, cell int) {
 	for _, neighbour := range processor.cells[cell] {
+		if catIdx == neighbour {
+			continue
+		}
 		processor.proccessPair(catIdx, neighbour)
 	}
 }
