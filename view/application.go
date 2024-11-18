@@ -1,4 +1,4 @@
-package UI
+package view
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"github.com/PavlushaSource/Radar/model/runner"
-	"github.com/PavlushaSource/Radar/view"
+	"github.com/PavlushaSource/Radar/view/UI"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/customTheme"
-	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/PavlushaSource/Radar/viewModel"
-	"sync"
-	"time"
+)
+
+const (
+	scaleRatio = 1.1
 )
 
 type RadarApplication interface {
@@ -91,116 +91,68 @@ func (app *radarApplication) fullscreenAction() {
 	}
 }
 
-func (app *radarApplication) RunRadarWindow(
-	ctx context.Context,
-	engineRunner runner.Runner,
-	UpdateTime time.Duration,
-	toolbarCreate func() fyne.CanvasObject,
-) {
-
-	app.showWindow(app.radarWindow)
-	app.appConfig.InMainMenu = false
-
-	ch := engineRunner.Run(ctx)
-
-	VMCats := viewModel.ConvertStateToVMCat(<-ch)
-	UICats := utils.CreateCats(VMCats, app.appConfig.CatSize)
-
-	//TODO: move to ViewModel
-	ticker := time.Tick(UpdateTime)
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				vmCats := ConvertStateToVMCat(<-ch)
-				<-ticker
-				uiCats := utils.CreateCats(vmCats, app.appConfig.CatSize)
-				//time.Sleep(6 * time.Second)
-				wg := sync.WaitGroup{}
-				for i, c := range uiCats {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						//fmt.Println("prevCatPosition", UICats[i].Position())
-						AnimateCat(UICats[i].Position(), c.Position(), UICats[i], 100)
-						UICats[i] = c
-						//fmt.Println("afterCatPosition", UICats[i].Position())
-					}()
-				}
-				wg.Wait()
-
-			}
-		}
-	}()
-
-	//RadarContainer := CreateContentRunWindow(app, UICats)
-
-	//app.radarWindow.SetContent(container.NewBorder(toolbarCreate(), nil, nil, nil, RadarContainer))
-}
-
 func (app *radarApplication) applyTheme() {
 	app.app.Settings().SetTheme(customTheme.GetApplicationTheme(app.appConfig))
 }
 
+func (app *radarApplication) registerScaleKeyboard(catsContainer fyne.CanvasObject, layout *UI.CatsLayout) func(rune) {
+	return func(r rune) {
+		if r == '=' {
+			layout.Scale *= scaleRatio
+		} else if r == '-' {
+			layout.Scale /= scaleRatio
+		} else {
+			return
+		}
+		nextSize := fyne.Size{Width: app.appConfig.WindowSize.Width * layout.Scale, Height: app.appConfig.WindowSize.Height * layout.Scale}
+
+		catsContainer.Resize(nextSize)
+	}
+}
+
 func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
-	toolbarCreate := createToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
+	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
-	layout := CatsLayout{Scale: 1, prevSize: app.AppConfig().WindowSize}
+	layout := UI.CatsLayout{Scale: 1, PrevSize: app.AppConfig().WindowSize}
 	catsContainer := container.New(&layout, cats...)
-	background := CreateCatsBoard(cats, &layout)
-	app.RadarWindow().Canvas().SetOnTypedRune(RegisterScaleRune(app.RadarWindow(), catsContainer, &layout, app.AppConfig()))
+	background := UI.CreateCatsBoard(cats, &layout)
+	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))
 	content := container.NewStack(background, catsContainer)
-
-	//RadarContainer := CreateContentRunWindow(app, cats)
 
 	return container.NewBorder(toolbarCreate(), nil, nil, nil, content)
 }
 
 func (app *radarApplication) createMainWindow(ctx context.Context) {
-	loadWindow := NewLoader("Please wait...", app.appConfig, app.settingsMenuWindow)
+	loadWindow := UI.NewLoader("Please wait...", app.appConfig, app.settingsMenuWindow)
+	toolbarCreateFunction := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
+	radarSettings := NewRadarSettings()
 
-	toolbarCreate := createToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
-
-	radarSettings := view.NewRadarSettings()
-
-	onConfigChoice := func(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig) {
+	onConfigChoice := func(chosenRadarSettings RadarSettings, appConfig config.ApplicationConfig) {
 		loadWindow.Start()
 		producer := viewModel.NewProducer(chosenRadarSettings, appConfig)
 		loadWindow.Stop()
 
 		// тут будет канал возвращаться и мы не рисуем, пока первые позицию не вернуться
-		producer.StartAppAction()
+		canvasCatsChannel := producer.StartAppAction(ctx)
 
-		app.radarWindow.SetContent(app.createRadarWindowContent())
+		app.radarWindow.SetContent(app.createRadarWindowContent(<-canvasCatsChannel))
 
 		app.hideWindow(app.settingsMenuWindow)
 		app.showWindow(app.radarWindow)
 
 		app.appConfig.InMainMenu = false
-
-		app.RunRadarWindow(ctx, engineRunner, chosenRadarSettings.UpdateTime, toolbarCreate)
 	}
 
 	onConfigChoiceError := func(err error) {
 		dialog.ShowError(err, app.settingsMenuWindow)
 	}
 
-	configChoice := CreateSettingsChoiceFunction(radarSettings, onConfigChoice, onConfigChoiceError)
+	configChoice := UI.CreateSettingsChoiceFunction(radarSettings, app.appConfig, onConfigChoice, onConfigChoiceError)
 
 	app.settingsMenuWindow.SetContent(
-		container.NewBorder(toolbarCreate(), createBottom(), nil, nil, configChoice()),
+		container.NewBorder(toolbarCreateFunction(), UI.CreateBottom(), nil, nil, configChoice()),
 	)
 	app.settingsMenuWindow.Resize(app.appConfig.WindowSize)
-	app.settingsMenuWindow.CenterOnScreen()
-}
-
-func (app *radarApplication) setupRadarWindow(cats []fyne.CanvasObject, toolbarCreate func() fyne.CanvasObject) {
-	radarContainer := CreateContentRunWindow(app, cats)
-
-	app.radarWindow.SetContent(container.NewBorder(toolbarCreate(), nil, nil, nil, radarContainer))
-	app.radarWindow.Resize(app.appConfig.WindowSize)
 	app.settingsMenuWindow.CenterOnScreen()
 }
 

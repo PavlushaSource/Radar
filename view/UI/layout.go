@@ -9,7 +9,7 @@ type CatsLayout struct {
 	Cats []fyne.CanvasObject
 
 	ScaleCenter fyne.Position
-	prevSize    fyne.Size
+	PrevSize    fyne.Size
 	Scale       float32
 }
 
@@ -18,8 +18,8 @@ func (d *CatsLayout) MinSize(_ []fyne.CanvasObject) fyne.Size {
 }
 
 func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
-	scaleX := d.prevSize.Width / containerSize.Width
-	scaleY := d.prevSize.Height / containerSize.Height
+	scaleX := d.PrevSize.Width / containerSize.Width
+	scaleY := d.PrevSize.Height / containerSize.Height
 
 	for _, obj := range objects {
 
@@ -34,5 +34,5 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 		obj.Move(obj.Position().Add(moveCat))
 		//fmt.Println("Cat position", obj.Position())
 	}
-	d.prevSize = containerSize
+	d.PrevSize = containerSize
 }

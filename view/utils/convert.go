@@ -5,15 +5,15 @@ import (
 	"github.com/PavlushaSource/Radar/viewModel"
 )
 
-func resourceCat(color producer.Color) fyne.Resource {
+func ResourceCat(color viewModel.Color) fyne.Resource {
 	switch color {
-	case producer.Red:
+	case viewModel.Red:
 		return ResourceCatRedSvg
-	case producer.Purple:
+	case viewModel.Purple:
 		return ResourceCatPurpleSvg
-	case producer.Blue:
+	case viewModel.Blue:
 		return ResourceCatBlueSvg
 	default:
-		panic("resourceCat: unknown color")
+		panic("ResourceCat: unknown color")
 	}
 }

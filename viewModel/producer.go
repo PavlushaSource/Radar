@@ -2,11 +2,14 @@ package viewModel
 
 import (
 	"context"
+	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/model/runner"
 	"github.com/PavlushaSource/Radar/view"
 	"github.com/PavlushaSource/Radar/view/config"
+	"sync"
+	"time"
 )
 
 var choiceDistanceCalcType = map[view.DistanceType]geom.Distance{
@@ -23,15 +26,13 @@ var choiceGeometryCalcType = map[view.GeometryType]geomCreateFunction{
 }
 
 type Producer interface {
-	StartAppAction(context.Context)
+	StartAppAction(context.Context) chan []fyne.CanvasObject
 }
 
 type producer struct {
 	chosenRadarSettings view.RadarSettings
 	appConfig           config.ApplicationConfig
-
-	MVCatChannel chan Cat
-	runner       runner.Runner
+	runner              runner.Runner
 }
 
 func NewProducer(chosenRadarSettings view.RadarSettings, appConfig config.ApplicationConfig) Producer {
@@ -39,7 +40,6 @@ func NewProducer(chosenRadarSettings view.RadarSettings, appConfig config.Applic
 		chosenRadarSettings: chosenRadarSettings,
 		appConfig:           appConfig,
 		runner:              newEngineRunner(chosenRadarSettings, appConfig),
-		MVCatChannel:        make(chan Cat, chosenRadarSettings.BufferSize),
 	}
 }
 
@@ -63,6 +63,38 @@ func newEngineRunner(chosenRadarSettings view.RadarSettings, appConfig config.Ap
 	return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
-func (p *producer) StartAppAction(ctx context.Context) {
+func (p *producer) StartAppAction(ctx context.Context) chan []fyne.CanvasObject {
+	UICatChannel := make(chan []fyne.CanvasObject, p.chosenRadarSettings.BufferSize)
 
+	engineStateCh := p.runner.Run(ctx)
+
+	// TODO нужно одна init состояние для UICats, потом можно просто этот массив мувать и не переприсваивать
+	// Первое чтение из канала как раз вычитает Init
+	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			// TODO put in ticker one value for init without timeout
+			case <-ticker:
+				uiCats := ConvertMVCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+				wg := sync.WaitGroup{}
+				for i, c := range uiCats {
+					wg.Add(1)
+					go func() {
+						defer wg.Done()
+						AnimateCat(UICats[i].Position(), c.Position(), UICats[i], 100)
+
+						// TODO это не нужно делать, только поменять svg в случае смены цвета
+						UICats[i] = c
+					}()
+				}
+				wg.Wait()
+
+			}
+		}
+	}()
+
+	return UICatChannel
 }
