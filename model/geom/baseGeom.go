@@ -36,20 +36,55 @@ func (geom *baseGeom) LimitPointMovement(point, movedPoint Point) Point {
 	// Cats move along a vector on the UI, so we consider the Euclidean distance
 	distance := EuclideanDistance(point, movedPoint, geom.barriers)
 
-	limitedPoint := movedPoint
+	if distance-geom.maxMoveDistance > Eps {
+		limitedPoint := geom.ReducePointMovement(point, movedPoint, geom.maxMoveDistance/distance)
 
-	if distance-maxPointMovingDegree > Eps {
-		k := maxPointMovingDegree / distance
-
-		limitedX := (movedPoint.X() - point.X()) * k
-		limitedY := (movedPoint.Y() - point.Y()) * k
-
-		limitedPoint.set(limitedX, limitedY)
+		movedPoint.set(limitedPoint.X(), limitedPoint.Y())
 	}
 
-	return limitedPoint
+	return movedPoint
 }
 
+func (geom *baseGeom) ReducePointMovement(point, movedPoint Point, k float64) Point {
+	newX := (movedPoint.X()-point.X())/k + point.X()
+	newY := (movedPoint.Y()-point.Y())/k + point.Y()
+
+	return NewPoint(newX, newY)
+}
+
+// CorrectMovingAchievable tries to correct movedPoint if needed.
+// Returns `oldPoint` if correct movedPoint is not found.
+func (geom *baseGeom) CorrectMovingAchievable(oldPoint, movedPoint Point, newPointGenerator func(point Point) Point) Point {
+	if !arePointsAchievable(oldPoint, movedPoint, geom.barriers, euclideanAchievability) {
+		newPoint := geom.withSaftySearchMovedPoint(oldPoint, newPointGenerator)
+
+		if newPoint == nil {
+			return oldPoint
+		} else {
+			return newPoint
+		}
+	}
+
+	return movedPoint
+}
+
+func (geom *baseGeom) withSaftySearchMovedPoint(oldPoint Point, newPointGenerate func(point Point) Point) Point {
+	for i := 0; i < 5; i++ {
+		point := geom.LimitPointMovement(oldPoint, newPointGenerate(oldPoint))
+
+		for j := 0; j < 13; j++ {
+			if arePointsAchievable(oldPoint, point, geom.barriers, euclideanAchievability) {
+				return point
+			} else {
+				point = geom.ReducePointMovement(oldPoint, point, 2)
+			}
+		}
+	}
+
+	return nil
+}
+
+// TODO: What about barriers?
 func (geom *baseGeom) NewRandomPoint() Point {
 	x := geom.rnd.Float64() * geom.width
 	y := geom.rnd.Float64() * geom.height
