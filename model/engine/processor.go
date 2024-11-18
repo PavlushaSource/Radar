@@ -68,6 +68,7 @@ func (processor *processor) process(state *State) *State {
 	processor.setUp()
 
 	processor.moveCats()
+	processor.cellSplitting()
 	processor.processCatsNeighbours()
 
 	processor.tearDown()
@@ -116,26 +117,23 @@ func (processor *processor) tearDown() {
 func (processor *processor) moveCats() {
 	var wg sync.WaitGroup
 
-	for _, cat := range processor.state.cats {
+	for i := range processor.state.cats {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.geom.MovePoint(cat)
+			processor.geom.MovePoint(processor.state.cats[i])
 		}()
 	}
 
 	wg.Wait()
+}
 
-	for i, cat := range processor.state.cats {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			cell := processor.cell(cat)
+func (processor *processor) cellSplitting() {
+	for i := range processor.state.cats {
+		if success, cell := processor.tryGetCell(processor.state.cats[i]); success {
 			processor.cells[cell] = append(processor.cells[cell], i)
-		}()
+		}
 	}
-
-	wg.Wait()
 }
 
 func (processor *processor) processCatsNeighbours() {
@@ -163,7 +161,10 @@ func (processor *processor) processCatsNeighbours() {
 }
 
 func (processor *processor) processCatNeighbours(catIdx int) {
-	cell := processor.cell(processor.state.cats[catIdx])
+	success, cell := processor.tryGetCell(processor.state.cats[catIdx])
+	if !success {
+		return
+	}
 
 	processor.processCell(catIdx, cell)
 	processor.processNeighbourCell(catIdx, cell, processor.tryGetUpCell)
@@ -195,6 +196,7 @@ func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
 	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
 
 	if dist <= processor.radiusFight {
+		// if false {
 		processor.state.cats[catIdx].status = Fighting
 		processor.state.cats[neighbourIdx].status = Fighting
 	} else if dist <= processor.radiusHiss {
