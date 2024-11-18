@@ -29,7 +29,7 @@ func (point *point) set(x float64, y float64) {
 	point.y = y
 }
 
-func newPoint(x float64, y float64) Point {
+func NewPoint(x float64, y float64) Point {
 	point := new(point)
 	point.set(x, y)
 	return point
