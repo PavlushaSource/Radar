@@ -2,9 +2,9 @@ package view
 
 import (
 	"context"
-	"fmt"
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/PavlushaSource/Radar/view/UI"
@@ -13,6 +13,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/customTheme"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/PavlushaSource/Radar/viewModel"
+	"image/color"
 )
 
 type RadarApplication interface {
@@ -114,12 +115,23 @@ func (app *radarApplication) registerScaleKeyboard(catsContainer *fyne.Container
 func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
 	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
-	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig}
+	//fmt.Println("initial size:", layout.PrevSize)
 
-	fmt.Println("initial size:", layout.PrevSize)
-	catsContainer := container.New(&layout, cats...)
+	// create border rectangle
+
+	rect := canvas.NewRectangle(color.Transparent)
+	rect.StrokeColor = color.Black
+	rect.StrokeWidth = 3
+
+	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect}
+
+	objects := make([]fyne.CanvasObject, 0, len(cats)+1)
+	objects = append(objects, rect)
+	objects = append(objects, cats...)
+
+	catsContainer := container.New(&layout, objects...)
 	//TODO: change windowSize -> container size
-	catsScrollableContainer := UI.CreateCatsScrollableContainer(cats, catsContainer, &layout, app.appConfig.WindowSize)
+	catsScrollableContainer := UI.CreateCatsScrollableContainer(cats, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig)
 	content := container.NewStack(catsScrollableContainer, catsContainer)
 
 	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))
