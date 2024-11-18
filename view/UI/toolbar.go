@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func createToolbarFunction(onHomeAction, onThemeAction, onFullScreenAction func()) func() fyne.CanvasObject {
+func CreateToolbarFunction(onHomeAction, onThemeAction, onFullScreenAction func()) func() fyne.CanvasObject {
 	return func() fyne.CanvasObject {
 		topToolbar := widget.Toolbar{
 			Items: []widget.ToolbarItem{
