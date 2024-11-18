@@ -103,7 +103,7 @@ func newState(height float64, width float64, radiusFight float64, radiusHiss flo
 
 	state.cats = make([]*cat, 0, numCats)
 	for i := 0; i < numCats; i++ {
-		state.cats = append(state.cats, newCat(geom.NewPoint(), numCats))
+		state.cats = append(state.cats, newCat(geom.NewPoint()))
 	}
 
 	return state
