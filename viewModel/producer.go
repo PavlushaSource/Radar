@@ -8,6 +8,7 @@ import (
 	"github.com/PavlushaSource/Radar/model/runner"
 	"github.com/PavlushaSource/Radar/view"
 	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/utils"
 	"sync"
 	"time"
 )
@@ -26,7 +27,7 @@ var choiceGeometryCalcType = map[view.GeometryType]geomCreateFunction{
 }
 
 type Producer interface {
-	StartAppAction(context.Context) chan []fyne.CanvasObject
+	StartAppAction(context.Context) []fyne.CanvasObject
 }
 
 type producer struct {
@@ -63,38 +64,78 @@ func newEngineRunner(chosenRadarSettings view.RadarSettings, appConfig config.Ap
 	return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
-func (p *producer) StartAppAction(ctx context.Context) chan []fyne.CanvasObject {
-	UICatChannel := make(chan []fyne.CanvasObject, p.chosenRadarSettings.BufferSize)
-
+func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	engineStateCh := p.runner.Run(ctx)
 
-	// TODO нужно одна init состояние для UICats, потом можно просто этот массив мувать и не переприсваивать
-	// Первое чтение из канала как раз вычитает Init
+	// Initial cats positions
+	cats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+
+	catsUpdater := func() {
+		uiCats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+		wg := sync.WaitGroup{}
+		for i, c := range uiCats {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				utils.AnimateCat(cats[i].Position(), c.Position(), cats[i], 100)
+			}()
+		}
+		wg.Wait()
+	}
+
 	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
+
+	withTicker(ctx, ticker, catsUpdater)
+
+	return cats
+}
+
+func withTicker(ctx context.Context, ticker <-chan time.Time, action func()) {
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			// TODO put in ticker one value for init without timeout
+
 			case <-ticker:
-				uiCats := ConvertMVCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
-				wg := sync.WaitGroup{}
-				for i, c := range uiCats {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						AnimateCat(UICats[i].Position(), c.Position(), UICats[i], 100)
-
-						// TODO это не нужно делать, только поменять svg в случае смены цвета
-						UICats[i] = c
-					}()
-				}
-				wg.Wait()
-
+				action()
 			}
 		}
 	}()
-
-	return UICatChannel
 }
+
+//func (p *producer) StartAppAction(ctx context.Context) chan []fyne.CanvasObject {
+//	UICatChannel := make(chan []fyne.CanvasObject, p.chosenRadarSettings.BufferSize)
+//
+//	engineStateCh := p.runner.Run(ctx)
+//
+//	// TODO нужно одна init состояние для UICats, потом можно просто этот массив мувать и не переприсваивать
+//	// Первое чтение из канала как раз вычитает Init
+//	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
+//	go func() {
+//		for {
+//			select {
+//			case <-ctx.Done():
+//				return
+//			// TODO put in ticker one value for init without timeout
+//			case <-ticker:
+//				uiCats := ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+//				wg := sync.WaitGroup{}
+//				for i, c := range uiCats {
+//					wg.Add(1)
+//					go func() {
+//						defer wg.Done()
+//						view.AnimateCat(UICats[i].Position(), c.Position(), UICats[i], 100)
+//
+//						// TODO это не нужно делать, только поменять svg в случае смены цвета
+//						UICats[i] = c
+//					}()
+//				}
+//				wg.Wait()
+//
+//			}
+//		}
+//	}()
+//
+//	return UICatChannel
+//}
