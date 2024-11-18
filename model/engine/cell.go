@@ -6,23 +6,23 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
-const cellDefault int64 = -1
+const cellDefault int = -1
 
-func numColumns(width float64, radius float64) int64 {
-	return int64(math.Ceil(width / radius))
+func numColumns(width float64, radius float64) int {
+	return int(math.Ceil(width / radius))
 }
 
-func numRows(height float64, radius float64) int64 {
-	return int64(math.Ceil(height / radius))
+func numRows(height float64, radius float64) int {
+	return int(math.Ceil(height / radius))
 }
 
-func (engine *engine) cell(point geom.Point) int64 {
-	column := int64(math.Trunc(point.X() / engine.radius))
-	row := int64(math.Trunc(point.Y() / engine.radius))
+func (engine *engine) cell(point geom.Point) int {
+	column := int(math.Trunc(point.X() / engine.radius))
+	row := int(math.Trunc(point.Y() / engine.radius))
 	return column*engine.numRows + row
 }
 
-func (engine *engine) checkCellColumnRow(column int64, row int64) bool {
+func (engine *engine) checkCellColumnRow(column int, row int) bool {
 	if 0 > row || row >= engine.numRows {
 		return false
 	}
@@ -32,9 +32,9 @@ func (engine *engine) checkCellColumnRow(column int64, row int64) bool {
 	return true
 }
 
-type neighbourCellExtractor func(cell int64) (bool, int64)
+type neighbourCellExtractor func(cell int) (bool, int)
 
-func (engine *engine) tryGetUpCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetUpCell(cell int) (bool, int) {
 	column := cell / engine.numRows
 	row := cell%engine.numRows + 1
 
@@ -44,7 +44,7 @@ func (engine *engine) tryGetUpCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetDownCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetDownCell(cell int) (bool, int) {
 	column := cell / engine.numRows
 	row := cell%engine.numRows - 1
 
@@ -54,7 +54,7 @@ func (engine *engine) tryGetDownCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetLeftCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetLeftCell(cell int) (bool, int) {
 	column := cell/engine.numRows - 1
 	row := cell % engine.numRows
 
@@ -64,7 +64,7 @@ func (engine *engine) tryGetLeftCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetRightCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetRightCell(cell int) (bool, int) {
 	column := cell/engine.numRows + 1
 	row := cell % engine.numRows
 
@@ -74,7 +74,7 @@ func (engine *engine) tryGetRightCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetUpLeftCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetUpLeftCell(cell int) (bool, int) {
 	column := cell/engine.numRows - 1
 	row := cell%engine.numRows + 1
 
@@ -84,7 +84,7 @@ func (engine *engine) tryGetUpLeftCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetUpRightCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetUpRightCell(cell int) (bool, int) {
 	column := cell/engine.numRows + 1
 	row := cell%engine.numRows + 1
 
@@ -94,7 +94,7 @@ func (engine *engine) tryGetUpRightCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetDownLeftCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetDownLeftCell(cell int) (bool, int) {
 	column := cell/engine.numRows - 1
 	row := cell%engine.numRows - 1
 
@@ -104,7 +104,7 @@ func (engine *engine) tryGetDownLeftCell(cell int64) (bool, int64) {
 	return true, column*engine.numRows + row
 }
 
-func (engine *engine) tryGetDownRightCell(cell int64) (bool, int64) {
+func (engine *engine) tryGetDownRightCell(cell int) (bool, int) {
 	column := cell/engine.numRows + 1
 	row := cell%engine.numRows - 1
 

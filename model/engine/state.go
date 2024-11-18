@@ -1,38 +1,17 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/PavlushaSource/Radar/model/geom"
 )
-
-type State interface {
-	Height() float64
-	Width() float64
-	RadiusHiss() float64
-	RadiusFight() float64
-
-	NumCats() int
-	CatsElementAt(idx int) Cat
-
-	Copy(dst State)
-
-	setHeight(height float64)
-	setWidth(width float64)
-	setRadiusHiss(radiusHiss float64)
-	setRadiusFight(radiusFight float64)
-
-	copyCatsFrom(src []Cat)
-
-	catsRunBlocking(action[Cat])
-
-	clean()
-}
 
 type state struct {
 	height      float64
 	width       float64
 	radiusHiss  float64
 	radiusFight float64
-	cats        []Cat
+	cats        []*cat
 }
 
 func (state *state) Height() float64 {
@@ -57,10 +36,6 @@ func (state *state) NumCats() int {
 
 func (state *state) CatsElementAt(idx int) Cat {
 	return state.cats[idx]
-}
-
-func (state *state) Cats() []Cat {
-	return state.cats
 }
 
 func (state *state) Copy(dst State) {
@@ -88,32 +63,37 @@ func (state *state) setRadiusFight(radiusFight float64) {
 	state.radiusFight = radiusFight
 }
 
-func (state *state) copyCatsFrom(src []Cat) {
+func (state *state) copyCatsFrom(src []*cat) {
+	var wg sync.WaitGroup
+
 	state.cats = state.cats[:len(src)]
 
-	runBlocking(
-		&state.cats,
-		func(i int, _ Cat) {
+	for i := range src {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 			src[i].Copy(state.cats[i])
-		})
-}
+		}()
+	}
 
-func (state *state) catsRunBlocking(action action[Cat]) {
-	runBlocking(
-		&state.cats,
-		func(i int, cat Cat) {
-			action(i, cat)
-		})
+	wg.Wait()
 }
 
 func (state *state) clean() {
-	state.catsRunBlocking(
-		func(_ int, cat Cat) {
+	var wg sync.WaitGroup
+
+	for _, cat := range state.cats {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 			cat.clean()
-		})
+		}()
+	}
+
+	wg.Wait()
 }
 
-func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) State {
+func newState(height float64, width float64, radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom) *state {
 	state := new(state)
 
 	state.height = height
@@ -121,7 +101,7 @@ func newState(height float64, width float64, radiusFight float64, radiusHiss flo
 	state.radiusFight = radiusFight
 	state.radiusHiss = radiusHiss
 
-	state.cats = make([]Cat, 0, numCats)
+	state.cats = make([]*cat, 0, numCats)
 	for i := 0; i < numCats; i++ {
 		state.cats = append(state.cats, newCat(geom.NewPoint(), numCats))
 	}
