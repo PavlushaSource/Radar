@@ -114,7 +114,7 @@ func (app *radarApplication) registerScaleKeyboard(catsContainer *fyne.Container
 func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
 	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
-	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize}
+	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig}
 
 	fmt.Println("initial size:", layout.PrevSize)
 	catsContainer := container.New(&layout, cats...)
@@ -137,7 +137,7 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 	onConfigChoice := func(chosenRadarSettings api.RadarSettings) {
 		loadWindow.Start()
 
-		producer := viewModel.NewProducer(chosenRadarSettings, app.appConfig)
+		producer := viewModel.NewProducer(chosenRadarSettings, &app.appConfig)
 		canvasCats := producer.StartAppAction(ctx)
 
 		loadWindow.Stop()

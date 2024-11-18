@@ -2,6 +2,7 @@ package viewModel
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
@@ -19,15 +20,15 @@ type Producer interface {
 
 type producer struct {
 	chosenRadarSettings api.RadarSettings
-	appConfig           config.ApplicationConfig
+	appConfig           *config.ApplicationConfig
 	runner              runner.Runner
 }
 
-func NewProducer(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) Producer {
+func NewProducer(chosenRadarSettings api.RadarSettings, appConfig *config.ApplicationConfig) Producer {
 	return &producer{
 		chosenRadarSettings: chosenRadarSettings,
 		appConfig:           appConfig,
-		runner:              newEngineRunner(chosenRadarSettings, appConfig),
+		runner:              newEngineRunner(chosenRadarSettings, *appConfig),
 	}
 }
 
@@ -56,16 +57,17 @@ func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 	engineStateCh := p.runner.Run(ctx)
 
 	// Initial cats positions
-	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord), p.appConfig.CatSize)
 
 	catsUpdater := func() {
-		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh), p.appConfig.CatSize)
+		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord), p.appConfig.CatSize)
 		wg := sync.WaitGroup{}
+		fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-
+				//fmt.Printf("Next postition %d cat = %f / %f\n", i, c.Position().X, c.Position().Y)
 				utils.AnimateCat(
 					cats[i].Position(),
 					c.Position(),

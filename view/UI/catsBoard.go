@@ -17,6 +17,8 @@ type CatsScrollableContainer struct {
 	catsLayout    *CatsLayout
 	catsContainer *fyne.Container
 
+	paddingEngineCoord *fyne.Position
+
 	prevEventPosition fyne.Position
 }
 
@@ -39,6 +41,9 @@ func (s *CatsScrollableContainer) Dragged(event *fyne.DragEvent) {
 	}
 
 	vector := fyne.Position{X: event.Position.X - s.prevEventPosition.X, Y: event.Position.Y - s.prevEventPosition.Y}
+
+	newPadding := s.paddingEngineCoord.Add(vector)
+	s.paddingEngineCoord = &newPadding
 	//fmt.Println(vector)
 	for _, cat := range s.cats {
 		go func() {
