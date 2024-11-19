@@ -20,7 +20,8 @@ type CatsLayout struct {
 	AppConfig   *config.ApplicationConfig
 	Scale       float32
 
-	BorderCount int
+	prevLineWidth float32
+	BorderCount   int
 }
 
 func (d *CatsLayout) MinSize(_ []fyne.CanvasObject) fyne.Size {
@@ -50,22 +51,35 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 			nextSize := fyne.NewSize(config.CatSize*d.Scale, config.CatSize*d.Scale)
 			if i >= 0 && i < d.BorderCount {
 				fmt.Println("SKIP LINE")
+				//l := obj.(*canvas.Line)
+				//l.StrokeWidth = 3 * d.Scale / l.StrokeWidth
 				//obj.Resize(fyne.NewSize(100, 100))
 				//fmt.Println("BORDER", obj.Position(), "SIZE", obj.Size())
 			} else {
 				obj.Resize(nextSize)
+				obj.Move(obj.Position().Add(moveCat))
 			}
-			obj.Move(obj.Position().Add(moveCat))
 			//fmt.Println("Cat position", obj.Position())
 		}()
 	}
 	for _, l := range d.Lines {
 		//scaleVectorX := (d.Border.Position().X - l.Position().X) * (scaleX - 1)
 
-		l.StrokeWidth = 3 * d.Scale
+		fmt.Println("SCALE STROKEWIDTH", d.Scale/l.StrokeWidth, "DSCALE", d.Scale, "STROKEWITH PREV", l.StrokeWidth)
+
+		fmt.Println("NEW CENTER X BORDER", containerSize.Width/2)
+		l.Position1 = fyne.NewPos(containerSize.Width/2+d.AppConfig.PaddingEngineCoord.X, d.AppConfig.PaddingEngineCoord.Y)
+		l.Position2 = fyne.NewPos(containerSize.Width/2+d.AppConfig.PaddingEngineCoord.X, containerSize.Height+d.AppConfig.PaddingEngineCoord.Y)
+
+		fmt.Println("CURRENT POSITION BORDER AFTER RESIZE", l.Position1.X)
 		//fmt.Println("NEW X POS LINE", scaleVectorX*containerSize.Width/2)
-		l.Position1 = fyne.NewPos(containerSize.Width/2, 0)
-		l.Position2 = fyne.NewPos(containerSize.Width/2, containerSize.Height)
+		if d.prevLineWidth == 0 {
+			d.prevLineWidth = 3
+		}
+		l.StrokeWidth = (1 / scaleX) * d.prevLineWidth
+		l.Refresh()
+		d.prevLineWidth = l.StrokeWidth
+		//l.Move(l.Position().Add(fyne.NewPos(-100, 0)))
 	}
 
 	wg.Wait()
