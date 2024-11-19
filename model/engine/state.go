@@ -37,7 +37,7 @@ func newState(numCats int, geom geom.Geom) *State {
 
 	state.cats = make([]*Cat, 0, numCats)
 	for i := 0; i < numCats; i++ {
-		state.cats = append(state.cats, newCat(geom.NewPoint()))
+		state.cats = append(state.cats, newCat(geom.NewRandomPoint()))
 	}
 
 	return state
