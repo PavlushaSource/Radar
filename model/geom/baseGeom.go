@@ -48,7 +48,7 @@ func (geom *baseGeom) LimitPointMovement(point, movedPoint Point) Point {
 	distance := EuclideanDistance(point, movedPoint, geom.barriers)
 
 	if distance-geom.maxMoveDistance > Eps {
-		limitedPoint := geom.ReducePointMovement(point, movedPoint, geom.maxMoveDistance/distance)
+		limitedPoint := geom.ReducePointMovement(point, movedPoint, distance/geom.maxMoveDistance)
 
 		movedPoint.set(limitedPoint.X(), limitedPoint.Y())
 	}
