@@ -48,7 +48,18 @@ func (geom *baseGeom) LimitPointMovement(point, movedPoint Point) Point {
 	distance := EuclideanDistance(point, movedPoint, geom.barriers)
 
 	if distance-geom.maxMoveDistance > Eps {
-		limitedPoint := geom.ReducePointMovement(point, movedPoint, distance/geom.maxMoveDistance)
+		limitedPoint := movedPoint
+		if distance != InfDistance {
+			limitedPoint = geom.ReducePointMovement(point, movedPoint, distance/geom.maxMoveDistance)
+		} else {
+			for j := 0; j < 13; j++ {
+				if arePointsAchievable(point, limitedPoint, geom.barriers, euclideanAchievability) {
+					break
+				} else {
+					limitedPoint = geom.ReducePointMovement(point, limitedPoint, 2)
+				}
+			}
+		}
 
 		movedPoint.set(limitedPoint.X(), limitedPoint.Y())
 	}
