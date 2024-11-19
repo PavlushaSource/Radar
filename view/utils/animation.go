@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"fyne.io/fyne/v2"
 	"time"
+
+	"fyne.io/fyne/v2"
 )
 
 func AnimateCat(A, B fyne.Position, cat fyne.CanvasObject, iterations int32) {
