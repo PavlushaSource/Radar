@@ -10,6 +10,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
+	"image/color"
 	"sync"
 	"time"
 )
@@ -77,7 +78,7 @@ func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {
 
-			wg.Add(1)
+			wg.Add(2)
 			go func(i int) {
 				defer wg.Done()
 				cats[i].Move(c.Position())
@@ -95,15 +96,15 @@ func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 				//cats[i].Refresh()
 
 			}(i)
-			//go func(i int) {
-			//	defer wg.Done()
-			//	//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
-			//	canvas.NewColorRGBAAnimation(utils.ColorToRGBA(colorCats[i]), utils.ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime/2, func(c color.Color) {
-			//		cats[i].FillColor = c
-			//		canvas.Refresh(cats[i])
-			//	}).Start()
-			//	colorCats[i] = VMCatNext[i].Color
-			//}(i)
+			go func(i int) {
+				defer wg.Done()
+				//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
+				canvas.NewColorRGBAAnimation(utils.ColorToRGBA(colorCats[i]), utils.ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime/2, func(c color.Color) {
+					cats[i].FillColor = c
+					canvas.Refresh(cats[i])
+				}).Start()
+				colorCats[i] = VMCatNext[i].Color
+			}(i)
 		}
 		wg.Wait()
 		end := time.Now()
