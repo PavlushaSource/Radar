@@ -37,10 +37,13 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 
 	rndAsync := rnd.NewRndCore()
 
+	// TODO: Think about passing max distance to geom
 	geomImpl := geomCreateFunc(
 		float64(appConfig.WindowSize.Height),
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
+		// math.Max(float64(appConfig.WindowSize.Height), float64(appConfig.WindowSize.Width))/10,
+		150,
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 		rndAsync,
 	)
