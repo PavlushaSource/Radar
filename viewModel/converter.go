@@ -2,13 +2,14 @@ package viewModel
 
 import (
 	"fmt"
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/view/api"
-	"image/color"
 )
 
 func ConvertStateToVMCat(state *engine.State, scaleEngineCoord fyne.Size, paddingEngineCoord fyne.Position) []api.Cat {
