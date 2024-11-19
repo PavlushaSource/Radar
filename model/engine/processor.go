@@ -43,7 +43,13 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 
 	processor.radiusFight = radiusFight
 	processor.radiusHiss = radiusHiss
-	processor.radius = radiusHiss
+
+	optimalRadius := calculateOptimalRadius(numCats, geometry.Height()*geometry.Width())
+	if radiusHiss < optimalRadius {
+		processor.radius = optimalRadius
+	} else {
+		processor.radius = radiusHiss
+	}
 
 	processor.rndAsync = rndAsync
 	processor.cf = 0
@@ -206,8 +212,8 @@ func (processor *processor) processCatsNeighbours() {
 }
 
 func (processor *processor) processCellWithSelf(col int, row int) {
-	for ci := range processor.cells[processor.cellByColumnRow(col, row)] {
-		for ni := range processor.cells[processor.cellByColumnRow(col, row)] {
+	for _, ci := range processor.cells[processor.cellByColumnRow(col, row)] {
+		for _, ni := range processor.cells[processor.cellByColumnRow(col, row)] {
 			if ci == ni {
 				continue
 			}
@@ -217,8 +223,8 @@ func (processor *processor) processCellWithSelf(col int, row int) {
 }
 
 func (processor *processor) processCellWithOther(col int, row int, otherCol int, otherRow int) {
-	for ci := range processor.cells[processor.cellByColumnRow(col, row)] {
-		for ni := range processor.cells[processor.cellByColumnRow(otherCol, otherRow)] {
+	for _, ci := range processor.cells[processor.cellByColumnRow(col, row)] {
+		for _, ni := range processor.cells[processor.cellByColumnRow(otherCol, otherRow)] {
 			processor.proccessPair(ci, ni)
 		}
 	}
