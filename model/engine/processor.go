@@ -212,8 +212,8 @@ func (processor *processor) processCatsNeighbours() {
 }
 
 func (processor *processor) processCellWithSelf(col int, row int) {
-	for _, ci := range processor.cells[processor.cellByColumnRow(col, row)] {
-		for _, ni := range processor.cells[processor.cellByColumnRow(col, row)] {
+	for _, ci := range processor.cells[processor.cellByRowColumn(row, col)] {
+		for _, ni := range processor.cells[processor.cellByRowColumn(row, col)] {
 			if ci == ni {
 				continue
 			}
@@ -223,8 +223,8 @@ func (processor *processor) processCellWithSelf(col int, row int) {
 }
 
 func (processor *processor) processCellWithOther(col int, row int, otherCol int, otherRow int) {
-	for _, ci := range processor.cells[processor.cellByColumnRow(col, row)] {
-		for _, ni := range processor.cells[processor.cellByColumnRow(otherCol, otherRow)] {
+	for _, ci := range processor.cells[processor.cellByRowColumn(row, col)] {
+		for _, ni := range processor.cells[processor.cellByRowColumn(otherRow, otherCol)] {
 			processor.proccessPair(ci, ni)
 		}
 	}
