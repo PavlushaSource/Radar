@@ -44,7 +44,7 @@ func ConvertDistanceTypeToDistance(distanceType api.DistanceType) geom.Distance 
 	return choiceDistanceCalcType[distanceType]
 }
 
-type GeomCreateFunction func(height float64, width float64, barriers []geom.Barrier, distance geom.Distance, rndAsync rnd.RndAsync) geom.Geom
+type GeomCreateFunction func(height float64, width float64, barriers []geom.Barrier, maxMoveDistance float64, distance geom.Distance, rndAsync rnd.RndAsync) geom.Geom
 
 var choiceGeometryCalcType = map[api.GeometryType]GeomCreateFunction{
 	api.Simple: geom.NewSimpleGeom,
