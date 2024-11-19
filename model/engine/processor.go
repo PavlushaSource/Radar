@@ -37,7 +37,7 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 	processor.points = make([]geom.Point, numCats)
 
 	for i := range processor.points {
-		processor.points[i] = geometry.NewPoint()
+		processor.points[i] = geometry.NewRandomPoint()
 	}
 
 	processor.radiusFight = radiusFight
