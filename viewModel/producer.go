@@ -45,7 +45,7 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
 		// math.Max(float64(appConfig.WindowSize.Height), float64(appConfig.WindowSize.Width))/10,
-		150,
+		10,
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 		rndAsync,
 	)

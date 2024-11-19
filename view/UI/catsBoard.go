@@ -20,6 +20,7 @@ type CatsScrollableContainer struct {
 	catsContainer *fyne.Container
 	AppConfig     *config.ApplicationConfig
 
+	borders           []fyne.CanvasObject
 	prevEventPosition fyne.Position
 }
 
@@ -55,6 +56,11 @@ func (s *CatsScrollableContainer) Dragged(event *fyne.DragEvent) {
 
 	s.AppConfig.PaddingEngineCoord = s.AppConfig.PaddingEngineCoord.Add(vector)
 	//fmt.Println(vector)
+
+	for _, b := range s.borders {
+		newPos := b.Position().Add(vector)
+		b.Move(newPos)
+	}
 	for _, cat := range s.cats {
 		go func() {
 			newPos := cat.Position().Add(vector)
@@ -79,13 +85,14 @@ func (s *CatsScrollableContainer) CreateRenderer() fyne.WidgetRenderer {
 	return widget.NewSimpleRenderer(rect)
 }
 
-func CreateCatsScrollableContainer(cats []fyne.CanvasObject, catsContainer *fyne.Container, catsLayout *CatsLayout, containerSize fyne.Size, appConfig *config.ApplicationConfig) *CatsScrollableContainer {
+func CreateCatsScrollableContainer(cats []fyne.CanvasObject, catsContainer *fyne.Container, catsLayout *CatsLayout, containerSize fyne.Size, appConfig *config.ApplicationConfig, borders []fyne.CanvasObject) *CatsScrollableContainer {
 	board := &CatsScrollableContainer{
 		cats:          cats,
 		catsContainer: catsContainer,
 		catsLayout:    catsLayout,
 		containerSize: containerSize,
 		AppConfig:     appConfig,
+		borders:       borders,
 	}
 
 	board.ExtendBaseWidget(board)

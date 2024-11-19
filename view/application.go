@@ -126,8 +126,13 @@ func (app *radarApplication) createRadarWindowContent(cats []*canvas.Circle) fyn
 	rect.StrokeColor = color.Black
 	rect.StrokeWidth = 3
 
+	line := canvas.NewLine(color.Black)
+	line.StrokeWidth = 3
+	line.Position1 = fyne.NewPos(240, 0)
+	line.Position2 = fyne.NewPos(240, 480)
+
 	fmt.Println("SIZE RECT", rect.Size())
-	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect}
+	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect, BorderCount: 1, Lines: []*canvas.Line{line}}
 
 	catsUI := make([]fyne.CanvasObject, 0)
 	for i := range cats {
@@ -135,11 +140,12 @@ func (app *radarApplication) createRadarWindowContent(cats []*canvas.Circle) fyn
 	}
 	objects := make([]fyne.CanvasObject, 0, len(cats)+1)
 	objects = append(objects, rect)
+	objects = append(objects, line)
 	objects = append(objects, catsUI...)
 
 	catsContainer := container.New(&layout, objects...)
 	//TODO: change windowSize -> container size
-	catsScrollableContainer := UI.CreateCatsScrollableContainer(catsUI, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig)
+	catsScrollableContainer := UI.CreateCatsScrollableContainer(catsUI, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig, []fyne.CanvasObject{line})
 	content := container.NewStack(catsScrollableContainer, catsContainer)
 
 	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))

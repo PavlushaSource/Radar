@@ -2,6 +2,7 @@ package UI
 
 import (
 	"fmt"
+	"fyne.io/fyne/v2/canvas"
 	"sync"
 
 	"fyne.io/fyne/v2"
@@ -12,11 +13,14 @@ type CatsLayout struct {
 	Cats []fyne.CanvasObject
 
 	Border fyne.CanvasObject
+	Lines  []*canvas.Line
 
 	ScaleCenter fyne.Position
 	PrevSize    fyne.Size
 	AppConfig   *config.ApplicationConfig
 	Scale       float32
+
+	BorderCount int
 }
 
 func (d *CatsLayout) MinSize(_ []fyne.CanvasObject) fyne.Size {
@@ -30,8 +34,10 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 	fmt.Println("SCALE NOW", d.Scale)
 	fmt.Println("Border position", d.Border.Position())
 
+	//line := objects[2 : 2+d.BorderCount+1]
+
 	wg := sync.WaitGroup{}
-	for _, obj := range objects[1:] {
+	for i, obj := range objects[1:] {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -42,11 +48,26 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 			//fmt.Println("SCALE CENTER", d.ScaleCenter)
 			//currentSize := obj.Size()
 			nextSize := fyne.NewSize(config.CatSize*d.Scale, config.CatSize*d.Scale)
-			obj.Resize(nextSize)
+			if i >= 0 && i < d.BorderCount {
+				fmt.Println("SKIP LINE")
+				//obj.Resize(fyne.NewSize(100, 100))
+				//fmt.Println("BORDER", obj.Position(), "SIZE", obj.Size())
+			} else {
+				obj.Resize(nextSize)
+			}
 			obj.Move(obj.Position().Add(moveCat))
 			//fmt.Println("Cat position", obj.Position())
 		}()
 	}
+	for _, l := range d.Lines {
+		//scaleVectorX := (d.Border.Position().X - l.Position().X) * (scaleX - 1)
+
+		l.StrokeWidth = 3 * d.Scale
+		//fmt.Println("NEW X POS LINE", scaleVectorX*containerSize.Width/2)
+		l.Position1 = fyne.NewPos(containerSize.Width/2, 0)
+		l.Position2 = fyne.NewPos(containerSize.Width/2, containerSize.Height)
+	}
+
 	wg.Wait()
 	// border scale
 	d.Border.Resize(containerSize)
