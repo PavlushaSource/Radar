@@ -6,6 +6,8 @@ import (
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 )
 
+const maxRndCounter = 10000000
+
 type baseGeom struct {
 	height          float64
 	width           float64
@@ -14,6 +16,7 @@ type baseGeom struct {
 	distance        Distance
 	rnd             *rand.Rand
 	rndAsync        rnd.RndAsync
+	rndCounter      int32
 }
 
 func (geom *baseGeom) Height() float64 {
@@ -30,6 +33,14 @@ func (geom *baseGeom) Barriers() []Barrier {
 
 func (geom *baseGeom) Distance(first Point, second Point) float64 {
 	return geom.distance(first, second, geom.barriers)
+}
+
+func (geom *baseGeom) IncrementRndCounter() {
+	geom.rndCounter += 1
+
+	if geom.rndCounter > maxRndCounter {
+		geom.rndCounter = geom.rndCounter % maxRndCounter
+	}
 }
 
 func (geom *baseGeom) LimitPointMovement(point, movedPoint Point) Point {
@@ -86,8 +97,11 @@ func (geom *baseGeom) withSaftySearchMovedPoint(oldPoint Point, newPointGenerate
 
 // TODO: What about barriers?
 func (geom *baseGeom) NewRandomPoint() Point {
-	x := geom.rnd.Float64() * geom.width
-	y := geom.rnd.Float64() * geom.height
+	x := geom.rndAsync.Float64ByFloat64(float64(geom.rndCounter)) * geom.width
+	geom.IncrementRndCounter()
+
+	y := geom.rndAsync.Float64ByFloat64(float64(geom.rndCounter)) * geom.height
+	geom.IncrementRndCounter()
 
 	return NewPoint(x, y)
 }

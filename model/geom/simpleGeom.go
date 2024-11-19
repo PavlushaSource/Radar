@@ -12,17 +12,21 @@ type simpleGeom struct {
 }
 
 func (geom *simpleGeom) MovePoint(point Point) {
-	x := geom.rndAsync.Float64ByFloat64(point.X()) * geom.width
-	y := geom.rndAsync.Float64ByFloat64(point.Y()) * geom.height
-
-	movedPoint := geom.LimitPointMovement(point, NewPoint(x, y))
+	movedPoint := geom.newSimpleRandomPoint(point)
+	movedPoint = geom.LimitPointMovement(point, movedPoint)
 	movedPoint = geom.CorrectMovingAchievable(point, movedPoint, geom.newSimpleRandomPoint)
 
 	point.set(movedPoint.X(), movedPoint.Y())
 }
 
-func (geom *simpleGeom) newSimpleRandomPoint(_ Point) Point {
-	return geom.NewRandomPoint()
+func (geom *simpleGeom) newSimpleRandomPoint(point Point) Point {
+	x := geom.rndAsync.Float64ByFloat64(point.X()*float64(geom.rndCounter)) * geom.width
+	geom.IncrementRndCounter()
+
+	y := geom.rndAsync.Float64ByFloat64(point.Y()*float64(geom.rndCounter)) * geom.height
+	geom.IncrementRndCounter()
+
+	return NewPoint(x, y)
 }
 
 func NewSimpleGeom(
