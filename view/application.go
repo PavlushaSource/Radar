@@ -3,6 +3,8 @@ package view
 import (
 	"context"
 	"fmt"
+	"image/color"
+
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -14,7 +16,6 @@ import (
 	"github.com/PavlushaSource/Radar/view/customTheme"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/PavlushaSource/Radar/viewModel"
-	"image/color"
 )
 
 type RadarApplication interface {
@@ -27,10 +28,11 @@ type RadarApplication interface {
 }
 
 type radarApplication struct {
-	app                fyne.App
-	appConfig          config.ApplicationConfig
-	settingsMenuWindow fyne.Window
-	radarWindow        fyne.Window
+	app                  fyne.App
+	appConfig            config.ApplicationConfig
+	settingsMenuWindow   fyne.Window
+	radarWindow          fyne.Window
+	radarEngineCtxCancel context.CancelFunc
 }
 
 func (app *radarApplication) App() fyne.App {
@@ -77,6 +79,7 @@ func (app *radarApplication) homeAction() {
 		app.showWindow(app.settingsMenuWindow)
 
 		app.appConfig.InMainMenu = true
+		app.radarEngineCtxCancel()
 	}
 }
 
@@ -151,6 +154,9 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 		loadWindow.Start()
 
 		producer := viewModel.NewProducer(chosenRadarSettings, &app.appConfig)
+		// TODO: Don't store enfine ctx cancel func in radarApplication (check homeAction)
+		ctx, cancel := context.WithCancel(ctx)
+		app.radarEngineCtxCancel = cancel
 		canvasCats := producer.StartAppAction(ctx)
 
 		loadWindow.Stop()
