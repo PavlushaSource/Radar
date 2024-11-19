@@ -14,7 +14,7 @@ func numRows(height float64, radius float64) int {
 	return int(math.Ceil(height / radius))
 }
 
-func (processor *processor) cellByColumnRow(column int, row int) int {
+func (processor *processor) cellByRowColumn(row int, column int) int {
 	return column*processor.numRows + row
 }
 
