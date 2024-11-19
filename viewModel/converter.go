@@ -35,7 +35,7 @@ func ColorToRGBA(c api.Color) color.NRGBA {
 	case api.Blue:
 		return color.NRGBA{B: 0xff, A: 0xff}
 	case api.Purple:
-		return color.NRGBA{B: 128, A: 0xff, R: 128}
+		return color.NRGBA{G: 0xff, A: 0xff}
 	}
 	fmt.Println("HIHIHIHI")
 	return color.NRGBA{}

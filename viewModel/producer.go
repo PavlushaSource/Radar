@@ -2,6 +2,7 @@ package viewModel
 
 import (
 	"context"
+	"github.com/PavlushaSource/Radar/view/utils"
 	"image/color"
 	"sync"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
-	"github.com/PavlushaSource/Radar/view/utils"
 )
 
 type Producer interface {
@@ -45,7 +45,7 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
 		// math.Max(float64(appConfig.WindowSize.Height), float64(appConfig.WindowSize.Width))/10,
-		150,
+		30,
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 		rndAsync,
 	)
@@ -93,18 +93,21 @@ func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 			wg.Add(2)
 			go func() {
 				defer wg.Done()
+				//cats[i].Move(c.Position())
+				//cats[i].FillColor = c.FillColor
+				//cats[i].Refresh()
 				//fmt.Printf("Next postition %d cat = %f / %f\n", i, c.Position().X, c.Position().Y)
 				utils.AnimateCat(
 					cats[i].Position(),
 					c.Position(),
 					cats[i],
-					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()/2),
+					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()),
 				)
 			}()
 			go func() {
 				defer wg.Done()
 				//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
-				canvas.NewColorRGBAAnimation(ColorToRGBA(colorCats[i]), ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime/2, func(c color.Color) {
+				canvas.NewColorRGBAAnimation(ColorToRGBA(colorCats[i]), ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime, func(c color.Color) {
 					cats[i].FillColor = c
 					canvas.Refresh(cats[i])
 				}).Start()
