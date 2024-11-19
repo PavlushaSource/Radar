@@ -35,6 +35,6 @@ func updateContainerSize(container *fyne.Container, width, height, scale float32
 		Width:  width * scale,
 		Height: height * scale,
 	}
-
+	fmt.Println("NEW SCALE", scale, "PREV CONTAINER SIZE", container.Size(), "NEXT CONTAINER RESIZE", width*scale, height*scale)
 	container.Resize(nextSize)
 }

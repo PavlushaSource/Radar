@@ -49,6 +49,12 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 	}
 	wg.Wait()
 	// border scale
+	d.Border.Resize(containerSize)
+	//d.Border.Move(d.Border.Position().Add(moveBorder))
+
+	d.AppConfig.ScaleEngineCoord = fyne.NewSize(d.AppConfig.ScaleEngineCoord.Width/scaleX, d.AppConfig.ScaleEngineCoord.Height/scaleY)
+	fmt.Println("New scaleEngineCoord", d.AppConfig.ScaleEngineCoord, "Container new size", containerSize)
+	d.PrevSize = containerSize
 
 	//scaleVectorX := (d.ScaleCenter.X - d.Border.Position().X) * (scaleX - 1)
 	//scaleVectorY := (d.ScaleCenter.Y - d.Border.Position().Y) * (scaleY - 1)
@@ -59,17 +65,17 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 	//	(containerSize.Width/d.Border.Size().Width)*d.Scale,
 	//	(containerSize.Height/d.Border.Size().Height)*d.Scale))
 
-	fmt.Println("SCALE X", scaleX, "PREV SIZE", d.PrevSize, "Curr size", containerSize)
-	newScaleEngineCoord := fyne.NewSize(d.AppConfig.ScaleEngineCoord.Width/scaleX*d.Scale, d.AppConfig.ScaleEngineCoord.Height/scaleY*d.Scale)
-
-	fmt.Println("X coef border", newScaleEngineCoord.Width/d.AppConfig.ScaleEngineCoord.Width)
-	d.Border.Resize(fyne.NewSize(d.Border.Size().Width*(1/scaleX)*d.Scale, d.Border.Size().Height*(1/scaleY)*d.Scale))
-	//d.Border.Resize(containerSize)
-	fmt.Println("SIZE BORDER", d.Border.Size())
-	//d.Border.Move(d.Border.Position().Add(moveBorder))
-
-	d.AppConfig.ScaleEngineCoord = newScaleEngineCoord
-	fmt.Println("New scaleEngineCoord", d.AppConfig.ScaleEngineCoord, "Container new size", containerSize)
-	d.PrevSize = d.Border.Size()
+	//fmt.Println("SCALE X", scaleX, "PREV SIZE", d.PrevSize, "Curr size", containerSize)
+	//newScaleEngineCoord := fyne.NewSize(d.AppConfig.ScaleEngineCoord.Width/scaleX*d.Scale, d.AppConfig.ScaleEngineCoord.Height/scaleY*d.Scale)
+	//
+	//fmt.Println("X coef border", newScaleEngineCoord.Width/d.AppConfig.ScaleEngineCoord.Width)
+	//d.Border.Resize(fyne.NewSize(d.Border.Size().Width*(1/scaleX)*d.Scale, d.Border.Size().Height*(1/scaleY)*d.Scale))
+	////d.Border.Resize(containerSize)
+	//fmt.Println("SIZE BORDER", d.Border.Size())
+	////d.Border.Move(d.Border.Position().Add(moveBorder))
+	//
+	//d.AppConfig.ScaleEngineCoord = newScaleEngineCoord
+	//fmt.Println("New scaleEngineCoord", d.AppConfig.ScaleEngineCoord, "Container new size", containerSize)
+	//d.PrevSize = d.Border.Size()
 	fmt.Println("______________________________________________________________")
 }
