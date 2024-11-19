@@ -2,15 +2,16 @@ package viewModel
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"fyne.io/fyne/v2"
+	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
-	"github.com/PavlushaSource/Radar/model/runner"
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
-	"sync"
-	"time"
 )
 
 type Producer interface {
@@ -20,46 +21,56 @@ type Producer interface {
 type producer struct {
 	chosenRadarSettings api.RadarSettings
 	appConfig           *config.ApplicationConfig
-	runner              runner.Runner
+	engine              *engine.Engine
 }
 
 func NewProducer(chosenRadarSettings api.RadarSettings, appConfig *config.ApplicationConfig) Producer {
 	return &producer{
 		chosenRadarSettings: chosenRadarSettings,
 		appConfig:           appConfig,
-		runner:              newEngineRunner(chosenRadarSettings, *appConfig),
+		engine:              newEngine(chosenRadarSettings, *appConfig),
 	}
 }
 
-func newEngineRunner(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) runner.Runner {
+func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) *engine.Engine {
 	geomCreateFunc := ConvertGeometryTypeToGeometry(chosenRadarSettings.GeometryType)
+
+	rndAsync := rnd.NewRndCore()
 
 	geomImpl := geomCreateFunc(
 		float64(appConfig.WindowSize.Height),
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
+		rndAsync,
 	)
 
-	engineImpl := engine.NewEngine(
+	return engine.NewEngine(
 		chosenRadarSettings.FightingRadius,
 		chosenRadarSettings.HissingRadius,
-		int64(chosenRadarSettings.CountCats),
+		chosenRadarSettings.CountCats,
 		geomImpl,
+		rndAsync,
+		chosenRadarSettings.BufferSize,
 	)
 
-	return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
+	//return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
 // StartAppAction TODO: in viewModel we must work with view Api, not directly with CanvasObjects
 func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
-	engineStateCh := p.runner.Run(ctx)
+	getCh, putCh := p.engine.Run(ctx)
+
+	state := <-getCh
 
 	// Initial cats positions
-	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+	putCh <- state
 
 	catsUpdater := func() {
-		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(<-engineStateCh, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+		state := <-getCh
+		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+		putCh <- state
 		wg := sync.WaitGroup{}
 		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {

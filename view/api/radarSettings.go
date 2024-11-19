@@ -11,7 +11,7 @@ type RadarSettings struct {
 	UpdateTime                    time.Duration
 	CountCats                     int
 	FightingRadius, HissingRadius float64
-	BufferSize                    int64
+	BufferSize                    int
 	GeometryType                  GeometryType
 }
 
