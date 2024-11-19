@@ -69,7 +69,7 @@ func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 	state := <-getCh
 
 	// Initial cats positions
-	VMCat := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord)
+	VMCat := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.CatSize, p.appConfig.ScaleEngineCoord)
 	cats := ConvertVMCatToCanvasCat(VMCat, p.appConfig.CatSize)
 	putCh <- state
 	colorCats := make([]api.Color, len(cats))
@@ -79,7 +79,7 @@ func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 
 	catsUpdater := func() {
 		state := <-getCh
-		VMCatNext := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord)
+		VMCatNext := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.CatSize, p.appConfig.ScaleEngineCoord)
 		uiCats := ConvertVMCatToCanvasCat(VMCatNext, p.appConfig.CatSize)
 
 		for i, c := range VMCatNext {
