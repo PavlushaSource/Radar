@@ -2,9 +2,10 @@ package UI
 
 import (
 	"fmt"
+	"sync"
+
 	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/view/config"
-	"sync"
 )
 
 type CatsLayout struct {
