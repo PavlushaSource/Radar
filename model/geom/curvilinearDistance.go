@@ -2,10 +2,10 @@ package geom
 
 import "math"
 
-// Расстоянием между двумя точками считается половина длины окружности построенной через эти точки.
-// При этом котики хотят видеть в оба глаза, поэтому достижимость должна быть по обеим полуокружностям.
+// The distance between two points is considered to be half the length of the circle constructed through these points.
+// Cats want to see with both eyes, so achievability should be on both semicircles.
+
 func CurvilinearDistance(first Point, second Point, barriers []Barrier) float64 {
-	// there are to ways to get achievable
 	if !arePointsAchievable(first, second, barriers, CurvilinearAchievability) {
 		return InfDistance
 	}
@@ -21,7 +21,7 @@ func CurvilinearAchievability(first Point, second Point, barrier Barrier) bool {
 func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) []Point {
 	ans := make([]Point, 0)
 
-	if barrierIsPoint(barrier) && cycleIsPoint(first, second) {
+	if barrierIsPoint(barrier) && circleIsPoint(first, second) {
 		if barrier.StartPoint().X() == first.X() && barrier.FinishPoint().Y() == first.Y() {
 			p := NewPoint(first.X(), first.Y())
 			if isPointOnBarrier(p, barrier) {
@@ -50,7 +50,7 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 		return ans
 	}
 
-	if cycleIsPoint(first, second) {
+	if circleIsPoint(first, second) {
 		if isPointOnBarrier(first, barrier) {
 			ans = append(ans, NewPoint(first.X(), first.Y()))
 		}
@@ -61,6 +61,51 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 	B := barrier.StartPoint().X()
 	C := barrier.FinishPoint().X() - barrier.StartPoint().X()
 	D := barrier.StartPoint().Y()
+
+	if C == 0 {
+		E := (B - X0) * (B - X0)
+		F := R * R
+		G := 2 * Y0
+		H := Y0 * Y0
+		I := H + E - F
+
+		Di := G*G - 4*I
+
+		if Di == 0 {
+			X := B
+			Y := G / 2
+
+			p := NewPoint(X, Y)
+
+			if isPointOnBarrier(p, barrier) {
+				ans = append(ans, p)
+			}
+		}
+
+		if Di > 0 {
+			X := B
+			Y := (G + math.Sqrt(Di)) / 2
+
+			p := NewPoint(X, Y)
+
+			if isPointOnBarrier(p, barrier) {
+				ans = append(ans, p)
+			}
+
+			X1 := B
+			Y1 := (G - math.Sqrt(Di)) / 2
+
+			p2 := NewPoint(X1, Y1)
+
+			if isPointOnBarrier(p2, barrier) {
+				ans = append(ans, p2)
+			}
+
+		}
+
+		return ans
+	}
+
 	E := A / C
 	F := -E*B + D
 
@@ -69,17 +114,18 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 	H := 2 * X0
 	I := X0 * X0
 	J := E * E
-	K := 2 * E
+	K := 2 * E * G
 	L := G * G
 	M := R * R
 
 	N := J + 1
-	O := I + K + L - M
+	O := I + L - M
+	P := -H + K
 
-	Di := H*H - 4*N*O
+	Di := P*P - 4*N*O
 
 	if Di == 0 {
-		X := H / (2 * N)
+		X := -P / (2 * N)
 		Y := E*X + F
 
 		p := NewPoint(X, Y)
@@ -90,7 +136,7 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 	}
 
 	if Di > 0 {
-		X1 := (H + math.Sqrt(Di)) / (2 * N)
+		X1 := (-P + math.Sqrt(Di)) / (2 * N)
 		Y1 := E*X1 + F
 
 		p := NewPoint(X1, Y1)
@@ -99,7 +145,7 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 			ans = append(ans, p)
 		}
 
-		X2 := (H - math.Sqrt(Di)) / (2 * N)
+		X2 := (-P - math.Sqrt(Di)) / (2 * N)
 		Y2 := E*X2 + F
 
 		p2 := NewPoint(X2, Y2)
@@ -117,7 +163,7 @@ func barrierIsPoint(barrier Barrier) bool {
 		barrier.StartPoint().Y() == barrier.FinishPoint().Y()
 }
 
-func cycleIsPoint(first Point, second Point) bool {
+func circleIsPoint(first Point, second Point) bool {
 	return first.X() == second.X() && first.Y() == second.Y()
 }
 
