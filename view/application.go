@@ -116,7 +116,7 @@ func (app *radarApplication) registerScaleKeyboard(catsContainer *fyne.Container
 	}
 }
 
-func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) fyne.CanvasObject {
+func (app *radarApplication) createRadarWindowContent(cats []*canvas.Circle) fyne.CanvasObject {
 	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
 
 	// TODO add CatsLayout constructor
@@ -129,13 +129,17 @@ func (app *radarApplication) createRadarWindowContent(cats []fyne.CanvasObject) 
 	fmt.Println("SIZE RECT", rect.Size())
 	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect}
 
+	catsUI := make([]fyne.CanvasObject, 0)
+	for i := range cats {
+		catsUI = append(catsUI, cats[i])
+	}
 	objects := make([]fyne.CanvasObject, 0, len(cats)+1)
 	objects = append(objects, rect)
-	objects = append(objects, cats...)
+	objects = append(objects, catsUI...)
 
 	catsContainer := container.New(&layout, objects...)
 	//TODO: change windowSize -> container size
-	catsScrollableContainer := UI.CreateCatsScrollableContainer(cats, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig)
+	catsScrollableContainer := UI.CreateCatsScrollableContainer(catsUI, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig)
 	content := container.NewStack(catsScrollableContainer, catsContainer)
 
 	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))

@@ -2,10 +2,11 @@ package viewModel
 
 import (
 	"context"
+	"fyne.io/fyne/v2/canvas"
+	"image/color"
 	"sync"
 	"time"
 
-	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
@@ -15,7 +16,7 @@ import (
 )
 
 type Producer interface {
-	StartAppAction(context.Context) []fyne.CanvasObject
+	StartAppAction(context.Context) []*canvas.Circle
 }
 
 type producer struct {
@@ -61,23 +62,34 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 }
 
 // StartAppAction TODO: in viewModel we must work with view Api, not directly with CanvasObjects
-func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
+func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
 	getCh, putCh := p.engine.Run(ctx)
 
 	state := <-getCh
 
 	// Initial cats positions
-	cats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+	VMCat := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord)
+	cats := ConvertVMCatToCanvasCat(VMCat, p.appConfig.CatSize)
 	putCh <- state
+	colorCats := make([]api.Color, len(cats))
+	for i, c := range VMCat {
+		colorCats[i] = c.Color
+	}
 
 	catsUpdater := func() {
 		state := <-getCh
-		uiCats := utils.ConvertVMCatToCanvasCat(ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord), p.appConfig.CatSize)
+		VMCatNext := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord)
+		uiCats := ConvertVMCatToCanvasCat(VMCatNext, p.appConfig.CatSize)
+
+		for i, c := range VMCatNext {
+			VMCatNext[i].Color = c.Color
+		}
+
 		putCh <- state
 		wg := sync.WaitGroup{}
 		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
 		for i, c := range uiCats {
-			wg.Add(1)
+			wg.Add(2)
 			go func() {
 				defer wg.Done()
 				//fmt.Printf("Next postition %d cat = %f / %f\n", i, c.Position().X, c.Position().Y)
@@ -85,9 +97,17 @@ func (p *producer) StartAppAction(ctx context.Context) []fyne.CanvasObject {
 					cats[i].Position(),
 					c.Position(),
 					cats[i],
-					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()),
+					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()/2),
 				)
-
+			}()
+			go func() {
+				defer wg.Done()
+				//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
+				canvas.NewColorRGBAAnimation(ColorToRGBA(colorCats[i]), ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime/2, func(c color.Color) {
+					cats[i].FillColor = c
+					canvas.Refresh(cats[i])
+				}).Start()
+				colorCats[i] = VMCatNext[i].Color
 			}()
 		}
 		wg.Wait()
