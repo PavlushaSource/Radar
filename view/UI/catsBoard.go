@@ -54,6 +54,7 @@ func (s *CatsScrollableContainer) Dragged(event *fyne.DragEvent) {
 
 	s.AppConfig.PaddingEngineCoord = s.AppConfig.PaddingEngineCoord.Add(vector)
 	//fmt.Println(vector)
+	fmt.Println(s.cats[0].Position())
 	for _, cat := range s.cats {
 		go func() {
 			newPos := cat.Position().Add(vector)

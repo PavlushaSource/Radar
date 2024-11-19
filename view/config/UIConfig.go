@@ -5,7 +5,7 @@ import "fyne.io/fyne/v2"
 const (
 	WindowH = 480
 	WindowW = 480
-	CatSize = 10
+	CatSize = 3
 )
 
 type ApplicationConfig struct {
