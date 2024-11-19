@@ -12,9 +12,10 @@ type processor struct {
 
 	numCats     int
 	geom        geom.Geom
-	radius      float64
 	radiusFight float64
 	radiusHiss  float64
+
+	radius float64
 
 	rndAsync rnd.RndAsync
 	cf       int
@@ -47,8 +48,8 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 	processor.rndAsync = rndAsync
 	processor.cf = 0
 
-	processor.numColumns = numColumns(geometry.Width(), radiusHiss)
-	processor.numRows = numRows(geometry.Height(), radiusHiss)
+	processor.numColumns = numColumns(geometry.Width(), processor.radius)
+	processor.numRows = numRows(geometry.Height(), processor.radius)
 	numCells := processor.numColumns * processor.numRows
 	processor.cells = make([][]int, numCells)
 	for i := range processor.cells {
@@ -139,13 +140,57 @@ func (processor *processor) cellSplitting() {
 func (processor *processor) processCatsNeighbours() {
 	var wg sync.WaitGroup
 
-	for i := range processor.state.cats {
-		wg.Add(1)
+	for col := 0; col < processor.numColumns-1; col++ {
+		for row := 0; row < processor.numRows-1; row++ {
+			wg.Add(4)
+			go func() {
+				defer wg.Done()
+				processor.processCellWithSelf(col, row)
+			}()
+			go func() {
+				defer wg.Done()
+				processor.processCellWithOther(col, row, col+1, row)
+			}()
+			go func() {
+				defer wg.Done()
+				processor.processCellWithOther(col, row, col, row+1)
+			}()
+			go func() {
+				defer wg.Done()
+				processor.processCellWithOther(col, row, col+1, row+1)
+			}()
+		}
+	}
+
+	for row := 0; row < processor.numRows-1; row++ {
+		wg.Add(2)
 		go func() {
 			defer wg.Done()
-			processor.processCatNeighbours(i)
+			processor.processCellWithSelf(processor.numColumns-1, row)
+		}()
+		go func() {
+			defer wg.Done()
+			processor.processCellWithOther(processor.numColumns-1, row, processor.numColumns-1, row+1)
 		}()
 	}
+
+	for col := 0; col < processor.numColumns-1; col++ {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			processor.processCellWithSelf(col, processor.numRows-1)
+		}()
+		go func() {
+			defer wg.Done()
+			processor.processCellWithOther(col, processor.numRows-1, col+1, processor.numRows-1)
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		processor.processCellWithSelf(processor.numColumns-1, processor.numRows-1)
+	}()
 
 	wg.Wait()
 
@@ -160,35 +205,22 @@ func (processor *processor) processCatsNeighbours() {
 	wg.Wait()
 }
 
-func (processor *processor) processCatNeighbours(catIdx int) {
-	success, cell := processor.tryGetCell(processor.state.cats[catIdx])
-	if !success {
-		return
-	}
-
-	processor.processCell(catIdx, cell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetUpCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetDownCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetLeftCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetRightCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetUpLeftCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetUpRightCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetDownLeftCell)
-	processor.processNeighbourCell(catIdx, cell, processor.tryGetDownRightCell)
-}
-
-func (processor *processor) processNeighbourCell(catIdx int, cell int, tryGetNeighbourCell neighbourCellExtractor) {
-	if success, neighbourCell := tryGetNeighbourCell(cell); success {
-		processor.processCell(catIdx, neighbourCell)
-	}
-}
-
-func (processor *processor) processCell(catIdx int, cell int) {
-	for _, neighbour := range processor.cells[cell] {
-		if catIdx == neighbour {
-			continue
+func (processor *processor) processCellWithSelf(col int, row int) {
+	for ci := range processor.cells[processor.cellByColumnRow(col, row)] {
+		for ni := range processor.cells[processor.cellByColumnRow(col, row)] {
+			if ci == ni {
+				continue
+			}
+			processor.proccessPair(ci, ni)
 		}
-		processor.proccessPair(catIdx, neighbour)
+	}
+}
+
+func (processor *processor) processCellWithOther(col int, row int, otherCol int, otherRow int) {
+	for ci := range processor.cells[processor.cellByColumnRow(col, row)] {
+		for ni := range processor.cells[processor.cellByColumnRow(otherCol, otherRow)] {
+			processor.proccessPair(ci, ni)
+		}
 	}
 }
 
@@ -196,11 +228,10 @@ func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
 	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
 
 	if dist <= processor.radiusFight {
-		// if false {
 		processor.state.cats[catIdx].status = Fighting
 		processor.state.cats[neighbourIdx].status = Fighting
 	} else if dist <= processor.radiusHiss {
-		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= hissingProbability(dist) {
+		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= (1 / (dist * dist)) {
 			processor.state.cats[catIdx].hissing = true
 			processor.state.cats[neighbourIdx].hissing = true
 		}
