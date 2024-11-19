@@ -2,10 +2,10 @@ package UI
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2/canvas"
 	"sync"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"github.com/PavlushaSource/Radar/view/config"
 )
 
