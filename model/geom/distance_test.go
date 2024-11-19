@@ -18,24 +18,24 @@ type distanceTest struct {
 var emptyBarrierSlice []Barrier
 
 var barrierSlice = []Barrier{
-	NewBarrier(newPoint(1, 1), newPoint(3, 3)),
-	NewBarrier(newPoint(4, 1), newPoint(4, 4)),
+	NewBarrier(NewPoint(1, 1), NewPoint(3, 3)),
+	NewBarrier(NewPoint(4, 1), NewPoint(4, 4)),
 }
 
 var distanceFuncArgsForTests = []distanceFuncArgs{
-	{newPoint(1, 2), newPoint(1, 2), emptyBarrierSlice},
-	{newPoint(10, 2), newPoint(8, 2), emptyBarrierSlice},
-	{newPoint(1, 20), newPoint(1, 10), emptyBarrierSlice},
-	{newPoint(1, 2), newPoint(3, 4), emptyBarrierSlice},
-	{newPoint(3, 4), newPoint(1, 2), emptyBarrierSlice},
-	{newPoint(1.5, 1.5), newPoint(3.5, 3.5), emptyBarrierSlice},
-	{newPoint(-1.5, -1.5), newPoint(3.5, 3.5), emptyBarrierSlice},
-	{newPoint(0, 0), newPoint(525252.52, 525252.52), emptyBarrierSlice},
-	{newPoint(1, 1), newPoint(1, 1), barrierSlice},
-	{newPoint(0, 0), newPoint(5, 0), barrierSlice},
-	{newPoint(0, 0), newPoint(5, 2), barrierSlice},
-	{newPoint(1, 3), newPoint(3, 1), barrierSlice},
-	{newPoint(3, 1), newPoint(5, 5), barrierSlice},
+	{NewPoint(1, 2), NewPoint(1, 2), emptyBarrierSlice},
+	{NewPoint(10, 2), NewPoint(8, 2), emptyBarrierSlice},
+	{NewPoint(1, 20), NewPoint(1, 10), emptyBarrierSlice},
+	{NewPoint(1, 2), NewPoint(3, 4), emptyBarrierSlice},
+	{NewPoint(3, 4), NewPoint(1, 2), emptyBarrierSlice},
+	{NewPoint(1.5, 1.5), NewPoint(3.5, 3.5), emptyBarrierSlice},
+	{NewPoint(-1.5, -1.5), NewPoint(3.5, 3.5), emptyBarrierSlice},
+	{NewPoint(0, 0), NewPoint(525252.52, 525252.52), emptyBarrierSlice},
+	{NewPoint(1, 1), NewPoint(1, 1), barrierSlice},
+	{NewPoint(0, 0), NewPoint(5, 0), barrierSlice},
+	{NewPoint(0, 0), NewPoint(5, 2), barrierSlice},
+	{NewPoint(1, 3), NewPoint(3, 1), barrierSlice},
+	{NewPoint(3, 1), NewPoint(5, 5), barrierSlice},
 }
 
 var euclideanDistanceTests = []distanceTest{
@@ -76,6 +76,26 @@ var manhattanDistanceDistanceTests = []distanceTest{
 
 func TestManhattanDistance(t *testing.T) {
 	RunDistanceTests(t, manhattanDistanceDistanceTests, ManhattanDistance)
+}
+
+var curvilinearDistanceDistanceTests = []distanceTest{
+	{distanceFuncArgsForTests[0], 0},
+	{distanceFuncArgsForTests[1], math.Pi},
+	{distanceFuncArgsForTests[2], 5 * math.Pi},
+	{distanceFuncArgsForTests[3], math.Sqrt(2) * math.Pi},
+	{distanceFuncArgsForTests[4], math.Sqrt(2) * math.Pi},
+	{distanceFuncArgsForTests[5], math.Sqrt(2) * math.Pi},
+	{distanceFuncArgsForTests[6], 5 / math.Sqrt(2) * math.Pi},
+	{distanceFuncArgsForTests[7], math.Sqrt(525252.52*525252.52*2) / 2 * math.Pi},
+	{distanceFuncArgsForTests[8], InfDistance},
+	{distanceFuncArgsForTests[9], InfDistance},
+	{distanceFuncArgsForTests[10], InfDistance},
+	{distanceFuncArgsForTests[11], InfDistance},
+	{distanceFuncArgsForTests[12], InfDistance},
+}
+
+func TestCurvilinearDistance(t *testing.T) {
+	RunDistanceTests(t, curvilinearDistanceDistanceTests, CurvilinearDistance)
 }
 
 func RunDistanceTests(t *testing.T, tests []distanceTest, testingFunc Distance) {
