@@ -2,10 +2,11 @@ package viewModel
 
 import (
 	"context"
-	"github.com/PavlushaSource/Radar/view/utils"
 	"image/color"
 	"sync"
 	"time"
+
+	"github.com/PavlushaSource/Radar/view/utils"
 
 	"fyne.io/fyne/v2/canvas"
 
