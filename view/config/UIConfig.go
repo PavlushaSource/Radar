@@ -5,7 +5,7 @@ import "fyne.io/fyne/v2"
 const (
 	WindowH = 480
 	WindowW = 480
-	CatSize = 10
+	CatSize = 50
 )
 
 type ApplicationConfig struct {
@@ -19,8 +19,8 @@ type ApplicationConfig struct {
 	PaddingEngineCoord fyne.Position
 }
 
-func NewApplicationConfig() ApplicationConfig {
-	return ApplicationConfig{
+func NewApplicationConfig() *ApplicationConfig {
+	return &ApplicationConfig{
 		WindowSize:         fyne.NewSize(WindowH, WindowW),
 		CatSize:            fyne.NewSize(CatSize, CatSize),
 		LightThemeFlag:     true,
