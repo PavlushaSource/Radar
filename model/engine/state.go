@@ -2,8 +2,6 @@ package engine
 
 import (
 	"sync"
-
-	"github.com/PavlushaSource/Radar/model/geom"
 )
 
 // The state type, which represents the state of the model, contains a pool of cats.
@@ -37,12 +35,12 @@ func (state *State) clean() {
 }
 
 // newState creates a new model state by number of cats.
-func newState(numCats int, geom geom.Geom) *State {
+func newState(numCats int) *State {
 	state := new(State)
 
 	state.cats = make([]*Cat, 0, numCats)
 	for i := 0; i < numCats; i++ {
-		state.cats = append(state.cats, newCat(geom.NewRandomPoint()))
+		state.cats = append(state.cats, newCat())
 	}
 
 	return state

@@ -45,7 +45,7 @@ func (engine *Engine) Run(ctx context.Context) (chan *State, chan *State) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			buffCh <- newState(engine.processor.numCats, engine.processor.geom)
+			buffCh <- newState(engine.processor.numCats)
 		}()
 	}
 	wg.Wait()

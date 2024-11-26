@@ -40,14 +40,14 @@ func (cat *Cat) clean() {
 	cat.hissing = false
 }
 
-// newCat creates and returns a new Cat object, receiving geom.Point.
-func newCat(point geom.Point) *Cat {
+// newCat creates and returns a new Cat object.
+func newCat() *Cat {
 	cat := new(Cat)
 
 	cat.status = Calm
 	cat.hissing = false
 
-	cat.Point = point
+	cat.Point = geom.NewPoint(0, 0)
 
 	return cat
 }
