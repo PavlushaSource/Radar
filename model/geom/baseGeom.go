@@ -123,7 +123,7 @@ func (geom *baseGeom) withSafetySearchMovedPoint(oldPoint Point, newPointGenerat
 	return nil
 }
 
-// TODO: What about a point generated in barrier?
+//TODO: What about a point generated in barrier?
 
 // NewRandomPoint generates random point
 func (geom *baseGeom) NewRandomPoint() Point {
