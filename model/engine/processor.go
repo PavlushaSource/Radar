@@ -15,7 +15,7 @@ type processor struct {
 	radiusFight float64
 	radiusHiss  float64
 
-	radius float64
+	cellSize float64
 
 	rndAsync rnd.RndAsync
 	cf       int
@@ -44,18 +44,18 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 	processor.radiusFight = radiusFight
 	processor.radiusHiss = radiusHiss
 
-	optimalRadius := calculateOptimalRadius(numCats, geometry.Height()*geometry.Width())
-	if radiusHiss < optimalRadius {
-		processor.radius = optimalRadius
+	optimalCellSize := calculateOptimalCellSize(numCats, geometry.Height()*geometry.Width())
+	if radiusHiss < optimalCellSize {
+		processor.cellSize = optimalCellSize
 	} else {
-		processor.radius = radiusHiss
+		processor.cellSize = radiusHiss
 	}
 
 	processor.rndAsync = rndAsync
 	processor.cf = 0
 
-	processor.numColumns = numColumns(geometry.Width(), processor.radius)
-	processor.numRows = numRows(geometry.Height(), processor.radius)
+	processor.numColumns = numColumns(geometry.Width(), processor.cellSize)
+	processor.numRows = numRows(geometry.Height(), processor.cellSize)
 	numCells := processor.numColumns * processor.numRows
 	processor.cells = make([][]int, numCells)
 	for i := range processor.cells {
