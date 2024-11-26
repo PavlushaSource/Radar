@@ -1,5 +1,7 @@
 # Dogs Radar
 
+<img width="100" alt="logo" align="right" src="https://github.com/user-attachments/assets/1e257c78-76a6-41dc-b34d-d898cf4489e8">
+
 Dogs Radar - инсутремент для симуляции взаимодействия объектов на плоскости
 
 Для увеличения красоты и понимания происходящего, в качестве объектов в приложении используются собачки
