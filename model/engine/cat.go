@@ -19,7 +19,7 @@ const (
 
 // Cat is a type that represents a cat with its status and coordinates.
 type Cat struct {
-	// Cat status
+	// Cat status.
 	status Status
 	// Hiss flag used to calculate the cat status after interaction.
 	hissing bool

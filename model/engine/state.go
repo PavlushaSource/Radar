@@ -6,6 +6,7 @@ import (
 
 // The state type, which represents the state of the model, contains a pool of cats.
 type State struct {
+	// Pool of cats.
 	cats []*Cat
 }
 
