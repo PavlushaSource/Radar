@@ -2,6 +2,7 @@ package geom
 
 import "math"
 
+// EuclideanDistance returns a Euclidean distance between to points
 func EuclideanDistance(first Point, second Point, barriers []Barrier) float64 {
 	if !arePointsAchievable(first, second, barriers, euclideanAchievability) {
 		return InfDistance
@@ -13,6 +14,7 @@ func EuclideanDistance(first Point, second Point, barriers []Barrier) float64 {
 	return math.Sqrt(xDiff*xDiff + yDiff*yDiff)
 }
 
+// euclideanAchievability returns true if the segment between the points does not intersect with the barrier
 func euclideanAchievability(first Point, second Point, barrier Barrier) bool {
 	// checks projections intersection
 	var projectionAchievability = func(ls1Start, ls1Finish, ls2Start, ls2Finish float64) bool {
