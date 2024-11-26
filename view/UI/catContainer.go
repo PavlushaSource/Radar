@@ -8,6 +8,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
+	"image/color"
 	"math/rand"
 	"sync"
 	"time"
@@ -39,25 +40,23 @@ type CatsContainer struct {
 	prevEventPosition fyne.Position
 	dragVector        fyne.Position
 	dragStartTime     time.Time
+	scale             float32
 }
 
 func NewCatsContainer(config *config.ApplicationConfig, bg *canvas.Image) *CatsContainer {
-	s := &CatsContainer{appConfig: config, bg: bg}
+	frame := canvas.NewRectangle(color.Transparent)
+	frame.Resize(fyne.NewSize(config.WindowSize.Width*config.ScaleEngineCoord.Width, config.WindowSize.Height*config.ScaleEngineCoord.Height))
+	frame.Move(config.PaddingEngineCoord)
+	frame.StrokeColor = color.RGBA{R: 72, G: 143, B: 63, A: 255}
+	frame.StrokeWidth = 7.5
+
+	s := &CatsContainer{appConfig: config, bg: bg, frame: frame, scale: 1}
 
 	s.ExtendBaseWidget(s)
 
 	go s.EmulateCatsCreate()
 
 	return s
-}
-
-func (c *CatsContainer) ChangeDogsColor(color api.Color) {
-	//for i := range c.Dogs {
-	//	cat := canvas.NewImageFromResource(GetResourceCatSvg(color))
-	//	cat.Move(c.Dogs[i].Position())
-	//	c.Dogs = append(c.Dogs, cat)
-	//}
-	//canvas.Refresh(c.bg)
 }
 
 func (c *CatsContainer) Dragged(event *fyne.DragEvent) {
@@ -83,6 +82,7 @@ func (c *CatsContainer) Dragged(event *fyne.DragEvent) {
 			cat.Move(newPos)
 		}()
 	}
+	c.frame.Move(c.frame.Position().Add(c.dragVector))
 	wg.Wait()
 	c.prevEventPosition = event.Position
 	c.dragStartTime = time.Now()
@@ -102,18 +102,17 @@ func MoveCat(c fyne.CanvasObject) {
 
 func (c *CatsContainer) EmulateCatsCreate() {
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		dog := NewDogUI(GetResourceCatSvg(api.Color(1)))
-		dog.Move(fyne.Position{X: float32(rand.Intn(1080)), Y: float32(rand.Intn(1080))})
+		dog.Move(fyne.Position{X: float32(rand.Intn(1920)), Y: float32(rand.Intn(1080))})
 		dog.Resize(c.appConfig.CatSize)
 
 		//cat := canvas.NewImageFromResource(GetResourceCatSvg(api.Color(1)))
 		//cat.Move(fyne.Position{X: float32(rand.Intn(1080)), Y: float32(rand.Intn(1080))})
 		//cat.Resize(c.appConfig.CatSize)
-		go MoveCat(dog)
+		//go MoveCat(dog)
 		c.Dogs = append(c.Dogs, dog)
 	}
-	fmt.Println("CREATE DOGS")
 	//go func() {
 	//	time.Sleep(3 * time.Second)
 	//	for i := 0; i < len(c.Dogs); i++ {
@@ -125,7 +124,6 @@ func (c *CatsContainer) EmulateCatsCreate() {
 	//	canvas.Refresh(c.bg)
 	//}()
 	canvas.Refresh(c.bg)
-	fmt.Println("REFRESH")
 }
 
 func (c *CatsContainer) CreateRenderer() fyne.WidgetRenderer {
@@ -156,14 +154,57 @@ func (c *catsContainerRenderer) Objects() []fyne.CanvasObject {
 	//objects := []fyne.CanvasObject{c.container.frame}
 	//objects = append(objects, c.container.Dogs...)
 
-	res := make([]fyne.CanvasObject, 0, len(c.container.Dogs))
+	res := make([]fyne.CanvasObject, 0, len(c.container.Dogs)+1)
 	for i := 0; i < len(c.container.Dogs); i++ {
 		res = append(res, c.container.Dogs[i])
 	}
+	res = append(res, c.container.frame)
 
 	return res
 }
 
 func (c *catsContainerRenderer) Refresh() {
 	//c.container.frame.Refresh()
+}
+
+func (c *CatsContainer) Scrolled(event *fyne.ScrollEvent) {
+	// we only process OY scrolls :)
+	fmt.Println("SCROLL NOW")
+	scrollDelta := event.Scrolled.DY
+	prevScale := c.scale
+
+	if scrollDelta > 0 {
+		c.scale = min(c.scale*utils.ScaleRatio, utils.MaxScale)
+	} else {
+		c.scale = max(c.scale/utils.ScaleRatio, utils.MinScale)
+	}
+
+	scaleRatio := c.scale / prevScale
+	//scaleX := 1 / c.scale
+	//scaleY := 1 / c.scale
+
+	wg := sync.WaitGroup{}
+	for _, obj := range c.Dogs {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			scaleVectorX := (event.Position.X - obj.Position().X) * (1 - scaleRatio)
+			scaleVectorY := (event.Position.Y - obj.Position().Y) * (1 - scaleRatio)
+			moveCat := fyne.NewPos(scaleVectorX, scaleVectorY)
+			obj.Resize(fyne.NewSize(obj.Size().Width*scaleRatio, obj.Size().Height*scaleRatio))
+			obj.Move(obj.Position().Add(moveCat))
+		}()
+	}
+	wg.Wait()
+
+	// frame scale
+	fmt.Println("BORDER POS BEFORE", c.frame.Position())
+	scaleVectorX := (event.Position.X - c.frame.Position().X) * (1 - scaleRatio)
+	scaleVectorY := (event.Position.Y - c.frame.Position().Y) * (1 - scaleRatio)
+	moveBorder := fyne.NewPos(scaleVectorX, scaleVectorY)
+	fmt.Println("MOVE BORDER", moveBorder)
+	c.frame.Move(c.frame.Position().Add(moveBorder))
+	fmt.Println("BORDER POS AFTER", c.frame.Position())
+
+	c.frame.Resize(fyne.NewSize(scaleRatio*c.frame.Size().Width, scaleRatio*c.frame.Size().Height))
 }

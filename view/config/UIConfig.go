@@ -3,8 +3,8 @@ package config
 import "fyne.io/fyne/v2"
 
 const (
-	WindowH = 480
-	WindowW = 480
+	WindowW = 1920
+	WindowH = 1080
 	CatSize = 50
 )
 
@@ -20,13 +20,17 @@ type ApplicationConfig struct {
 }
 
 func NewApplicationConfig() *ApplicationConfig {
+	scale := fyne.NewSize(1, 1)
+
+	padding := fyne.NewPos(WindowW*(1-scale.Width)/2, WindowH*(1-scale.Width)/2)
+
 	return &ApplicationConfig{
-		WindowSize:         fyne.NewSize(WindowH, WindowW),
+		WindowSize:         fyne.NewSize(WindowW, WindowH),
 		CatSize:            fyne.NewSize(CatSize, CatSize),
 		LightThemeFlag:     true,
 		FullScreenMode:     false,
 		InMainMenu:         true,
-		ScaleEngineCoord:   fyne.NewSize(1, 1),
-		PaddingEngineCoord: fyne.NewPos(0, 0),
+		ScaleEngineCoord:   scale,
+		PaddingEngineCoord: padding,
 	}
 }

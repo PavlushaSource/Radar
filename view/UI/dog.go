@@ -16,6 +16,10 @@ func (d DogUIRenderer) Destroy() {
 }
 
 func (d DogUIRenderer) Layout(size fyne.Size) {
+	if len(d.Objects()) == 0 {
+		return
+	}
+	d.Objects()[0].Resize(size)
 }
 
 func (d DogUIRenderer) MinSize() fyne.Size {
