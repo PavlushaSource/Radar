@@ -40,7 +40,6 @@ type DogsContainer struct {
 	prevEventPosition fyne.Position
 	dragVector        fyne.Position
 	dragStartTime     time.Time
-	scale             float32
 }
 
 func NewDogsContainer(config *config.ApplicationConfig, bg *canvas.Image, dogs []*DogUI) *DogsContainer {
@@ -50,7 +49,7 @@ func NewDogsContainer(config *config.ApplicationConfig, bg *canvas.Image, dogs [
 	frame.StrokeColor = color.RGBA{R: 72, G: 143, B: 63, A: 255}
 	frame.StrokeWidth = 7.5
 
-	s := &DogsContainer{appConfig: config, bg: bg, frame: frame, scale: config.Scale, Dogs: dogs}
+	s := &DogsContainer{appConfig: config, bg: bg, frame: frame, Dogs: dogs}
 
 	s.ExtendBaseWidget(s)
 	//go s.EmulateCatsCreate()
@@ -168,15 +167,15 @@ func (c *dogsContainerRenderer) Refresh() {
 func (c *DogsContainer) Scrolled(event *fyne.ScrollEvent) {
 	// we only process OY scrolls :)
 	scrollDelta := event.Scrolled.DY
-	prevScale := c.scale
+	prevScale := c.appConfig.Scale
 
 	if scrollDelta > 0 {
-		c.scale = min(c.scale*utils.ScaleRatio, utils.MaxScale)
+		c.appConfig.Scale = min(c.appConfig.Scale*utils.ScaleRatio, utils.MaxScale)
 	} else {
-		c.scale = max(c.scale/utils.ScaleRatio, utils.MinScale)
+		c.appConfig.Scale = max(c.appConfig.Scale/utils.ScaleRatio, utils.MinScale)
 	}
 
-	scaleRatio := c.scale / prevScale
+	scaleRatio := c.appConfig.Scale / prevScale
 
 	// dogs scale
 	wg := sync.WaitGroup{}

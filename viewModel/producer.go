@@ -2,6 +2,7 @@ package viewModel
 
 import (
 	"context"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"github.com/PavlushaSource/Radar/view/UI"
 	"github.com/PavlushaSource/Radar/view/utils"
@@ -70,15 +71,15 @@ func (p *producer) StartAppAction(ctx context.Context) []*UI.DogUI {
 	VMDog := p.ConvertStateToVMDog(state)
 	dogs := p.ConvertVMDogToUI(VMDog)
 	putCh <- state
-	//prevTime := time.Now()
+	prevTime := time.Now()
 	catsUpdater := func() {
 		state := <-getCh
 		VMCatNext := p.ConvertStateToVMDog(state)
 		UIDogs := p.ConvertVMDogToUI(VMCatNext)
 		putCh <- state
 		wg := sync.WaitGroup{}
-		//fmt.Println("СОБАКИ НАЧАЛО АНИМАЦИИ ", time.Since(prevTime))
-		//prevTime = time.Now()
+		fmt.Println("СОБАКИ НАЧАЛО АНИМАЦИИ ", time.Since(prevTime))
+		prevTime = time.Now()
 		for i, d := range UIDogs {
 			wg.Add(1)
 			go func() {
@@ -93,7 +94,7 @@ func (p *producer) StartAppAction(ctx context.Context) []*UI.DogUI {
 			}()
 		}
 		wg.Wait()
-		//fmt.Println("ВСЕ ГОРУТИНЫ АНИМАЦИИ Отработали")
+		fmt.Println("ВСЕ ГОРУТИНЫ АНИМАЦИИ Отработали")
 	}
 
 	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
@@ -109,17 +110,8 @@ func (p *producer) ConvertStateToVMDog(state *engine.State) []api.Dog {
 
 	for i := 0; i < state.NumCats(); i++ {
 		c := state.CatsElementAt(i)
-		var x, y float32
-		if i == 0 {
-			x = float32(0)*p.appConfig.Scale + p.appConfig.PaddingEnginePos.X
-			y = float32(0)*p.appConfig.Scale + p.appConfig.PaddingEnginePos.Y
-
-		} else {
-
-		}
-		x = float32(c.X())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.X
-		y = float32(c.Y())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.Y
-		//fmt.Println("X | Y", x, y, "ENGINE X | Y", c.X(), c.Y(), "SCALE", p.appConfig.Scale)
+		x := float32(c.X())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.X*p.appConfig.Scale
+		y := float32(c.Y())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.Y*p.appConfig.Scale
 		vmDogs = append(vmDogs, api.Dog{X: x, Y: y, Color: ConvertStatusToColor(c)})
 	}
 
