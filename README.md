@@ -45,3 +45,8 @@ Will be soon...
 ```shell 
   make run 
 ```
+
+## Архитектура и используемые решения
+
+Will be soon...
+
