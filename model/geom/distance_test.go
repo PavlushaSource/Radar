@@ -5,6 +5,32 @@ import (
 	"testing"
 )
 
+// Testing Distance Calculation Functions
+//
+// The following scenarios are tested:
+// - Both objects have positive coordinates
+// - One of the objects has negative coordinates
+// - Both objects have negative coordinates
+// - Objects are at a large distance from each other
+// - Objects have identical coordinates
+// - Objects are not enclosed by a barrier
+// - Objects are enclosed by a barrier
+//      (+ case where the function touches but does not cross the barrier)
+//
+//
+// The test coverage can be considered sufficient because all the main scenarios of using the algorithm are tested
+//
+//
+// How are the tests organized?
+//
+// Predefined test data covering the main scenarios of the algorithm are stored in [distanceFuncArgsForTests]
+//
+// For each distance calculation function, `Expected` values corresponding to the test data were prepared
+// These values are stored in [euclideanDistanceTests], [manhattanDistanceDistanceTests], and [curvilinearDistanceDistanceTests]
+//
+// Using Go's testing tools, the tested function is executed on the test data,
+// followed by a correctness check (comparison of `Actual` and `Expected` results)
+
 type distanceFuncArgs struct {
 	first, second Point
 	barriers      []Barrier
