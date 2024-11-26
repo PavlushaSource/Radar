@@ -2,9 +2,8 @@ package geom
 
 import "math"
 
-// The distance between two points is considered to be half the length of the circle constructed through these points.
-// Cats want to see with both eyes, so achievability should be on both semicircles.
-
+// CurvilinearDistance returns a distance between two points, which is considered to be half of the length of the circle
+// constructed through these points.
 func CurvilinearDistance(first Point, second Point, barriers []Barrier) float64 {
 	if !arePointsAchievable(first, second, barriers, CurvilinearAchievability) {
 		return InfDistance
@@ -14,10 +13,12 @@ func CurvilinearDistance(first Point, second Point, barriers []Barrier) float64 
 	return math.Pi * radius
 }
 
+// CurvilinearAchievability returns true if the achievability is performed on both semicircles
 func CurvilinearAchievability(first Point, second Point, barrier Barrier) bool {
 	return len(IntersectCurvilinearAndBarrier(first, second, barrier)) == 0
 }
 
+// IntersectCurvilinearAndBarrier returns the points of intersection of the curvilinear function and the barrier
 func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) []Point {
 	ans := make([]Point, 0)
 
@@ -158,15 +159,18 @@ func IntersectCurvilinearAndBarrier(first Point, second Point, barrier Barrier) 
 	return ans
 }
 
+// barrierIsPoint returns true if the barrier is a point
 func barrierIsPoint(barrier Barrier) bool {
 	return barrier.StartPoint().X() == barrier.FinishPoint().X() &&
 		barrier.StartPoint().Y() == barrier.FinishPoint().Y()
 }
 
+// circleIsPoint returns true is the circle is a point
 func circleIsPoint(first Point, second Point) bool {
 	return first.X() == second.X() && first.Y() == second.Y()
 }
 
+// isPointOnBarrier returns true if the point on the barrier
 func isPointOnBarrier(point Point, barrier Barrier) bool {
 	A := barrier.FinishPoint().Y() - barrier.StartPoint().Y()
 	B := barrier.StartPoint().X()
