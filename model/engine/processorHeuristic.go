@@ -2,37 +2,37 @@ package engine
 
 import "math"
 
-const radius1 float64 = 1 << 2
+const cellSize1 float64 = 1 << 2
 
-const radius1NumCatsBound int = 1 << 18
+const cellSize1NumCatsBound int = 1 << 18
 
-const radius2 float64 = 1 << 3
+const cellSize2 float64 = 1 << 3
 
-const radius2NumCatsBound int = 1 << 16
+const cellSize2NumCatsBound int = 1 << 16
 
-const radius3 float64 = 1 << 4
+const cellSize3 float64 = 1 << 4
 
-const radius3NumCatsBound int = 1 << 13
+const cellSize3NumCatsBound int = 1 << 13
 
-const radius4 float64 = 1 << 7
+const cellSize4 float64 = 1 << 7
 
 const squareBase float64 = 1 << 20
 
-func calculateOptimalRadius(numCats int, square float64) float64 {
-	optimalRadius := radius4
-	if numCats >= radius1NumCatsBound {
-		optimalRadius = radius1
-	} else if numCats >= radius2NumCatsBound {
-		optimalRadius = radius2
-	} else if numCats >= radius3NumCatsBound {
-		optimalRadius = radius3
+func calculateOptimalCellSize(numCats int, square float64) float64 {
+	optimalRadius := cellSize4
+	if numCats >= cellSize1NumCatsBound {
+		optimalRadius = cellSize1
+	} else if numCats >= cellSize2NumCatsBound {
+		optimalRadius = cellSize2
+	} else if numCats >= cellSize3NumCatsBound {
+		optimalRadius = cellSize3
 	}
 
-	radiusCf := math.Sqrt(square / squareBase)
+	cellSizeCf := math.Sqrt(square / squareBase)
 
-	if radiusCf == 0 {
-		radiusCf = 1
+	if cellSizeCf == 0 {
+		cellSizeCf = 1
 	}
 
-	return optimalRadius * radiusCf
+	return optimalRadius * cellSizeCf
 }
