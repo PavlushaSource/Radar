@@ -58,7 +58,7 @@ func CreateSettingsChoiceFunction(
 		// TODO: mb move every variant to own constant entity
 		form := &widget.Form{
 			Items: []*widget.FormItem{
-				{Text: "Count cats", Widget: catCount, HintText: "enter a positive number up to 5 * 10^4"},
+				{Text: "Count Dogs", Widget: catCount, HintText: "enter a positive number up to 5 * 10^4"},
 				{Text: "Update time", Widget: updateTime, HintText: "time in second"},
 				{Text: "Angry radius", Widget: fightingRadius, HintText: "size in pixels"},
 				{Text: "Hissing radius", Widget: hissingRadius, HintText: "size in pixels"},

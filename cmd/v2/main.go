@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/UI"
 	"github.com/PavlushaSource/Radar/view/api"
 	config "github.com/PavlushaSource/Radar/view/config"
@@ -28,15 +29,19 @@ func main() {
 
 	//w.SetContent(bg)
 
-	//c := UI.NewCatsContainer(config, bg)
-	//w.SetContent(container.NewStack(bg, c))
-	dog := UI.NewDogUI(UI.GetResourceCatSvg(api.Color(1)))
-	w.SetContent(dog)
+	c := UI.NewCatsContainer(config, bg)
+	w.SetContent(container.NewStack(bg, c))
+	//dog := UI.NewDogUI(UI.GetResourceCatSvg(api.Color(1)))
+	//w.SetContent(dog)
 
 	go func() {
 		time.Sleep(3 * time.Second)
 		fmt.Println("SET COLOR NEW")
-		dog.SetColor(UI.GetResourceCatSvg(api.Color(2)))
+		for i, d := range c.Dogs {
+			if i%2 == 0 {
+				d.SetColor(UI.GetResourceCatSvg(api.Color(2)))
+			}
+		}
 	}()
 	//go func() {
 	//	time.Sleep(2 * time.Second)

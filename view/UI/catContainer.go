@@ -32,7 +32,7 @@ type CatsContainer struct {
 	widget.BaseWidget
 
 	appConfig *config.ApplicationConfig
-	cats      []*DogUI
+	Dogs      []*DogUI
 	frame     fyne.CanvasObject
 
 	bg                *canvas.Image
@@ -52,10 +52,10 @@ func NewCatsContainer(config *config.ApplicationConfig, bg *canvas.Image) *CatsC
 }
 
 func (c *CatsContainer) ChangeDogsColor(color api.Color) {
-	//for i := range c.cats {
+	//for i := range c.Dogs {
 	//	cat := canvas.NewImageFromResource(GetResourceCatSvg(color))
-	//	cat.Move(c.cats[i].Position())
-	//	c.cats = append(c.cats, cat)
+	//	cat.Move(c.Dogs[i].Position())
+	//	c.Dogs = append(c.Dogs, cat)
 	//}
 	//canvas.Refresh(c.bg)
 }
@@ -75,7 +75,7 @@ func (c *CatsContainer) Dragged(event *fyne.DragEvent) {
 
 	wg := sync.WaitGroup{}
 
-	for _, cat := range c.cats {
+	for _, cat := range c.Dogs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -102,7 +102,7 @@ func MoveCat(c fyne.CanvasObject) {
 
 func (c *CatsContainer) EmulateCatsCreate() {
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		dog := NewDogUI(GetResourceCatSvg(api.Color(1)))
 		dog.Move(fyne.Position{X: float32(rand.Intn(1080)), Y: float32(rand.Intn(1080))})
 		dog.Resize(c.appConfig.CatSize)
@@ -110,16 +110,16 @@ func (c *CatsContainer) EmulateCatsCreate() {
 		//cat := canvas.NewImageFromResource(GetResourceCatSvg(api.Color(1)))
 		//cat.Move(fyne.Position{X: float32(rand.Intn(1080)), Y: float32(rand.Intn(1080))})
 		//cat.Resize(c.appConfig.CatSize)
-		//go MoveCat(cat)
-		c.cats = append(c.cats, dog)
+		go MoveCat(dog)
+		c.Dogs = append(c.Dogs, dog)
 	}
 	fmt.Println("CREATE DOGS")
 	//go func() {
 	//	time.Sleep(3 * time.Second)
-	//	for i := 0; i < len(c.cats); i++ {
+	//	for i := 0; i < len(c.Dogs); i++ {
 	//		cat := canvas.NewImageFromResource(GetResourceCatSvg(api.Color(2)))
 	//		cat.Move(fyne.Position{X: float32(rand.Intn(1080)), Y: float32(rand.Intn(1080))})
-	//		c.cats[i] = cat
+	//		c.Dogs[i] = cat
 	//	}
 	//
 	//	canvas.Refresh(c.bg)
@@ -154,12 +154,11 @@ func (c *catsContainerRenderer) MinSize() fyne.Size {
 
 func (c *catsContainerRenderer) Objects() []fyne.CanvasObject {
 	//objects := []fyne.CanvasObject{c.container.frame}
-	//objects = append(objects, c.container.cats...)
+	//objects = append(objects, c.container.Dogs...)
 
-	fmt.Println("GIVE OBJECT", len(c.container.cats))
-	res := make([]fyne.CanvasObject, 0, len(c.container.cats))
-	for i := 0; i < len(c.container.cats); i++ {
-		res = append(res, c.container.cats[i])
+	res := make([]fyne.CanvasObject, 0, len(c.container.Dogs))
+	for i := 0; i < len(c.container.Dogs); i++ {
+		res = append(res, c.container.Dogs[i])
 	}
 
 	return res
