@@ -5,9 +5,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/config"
 )
 
-//TODO: config -> lightFlag. (This method does not know about application instances)
-
-func GetApplicationTheme(config config.ApplicationConfig) fyne.Theme {
+func GetApplicationTheme(config *config.ApplicationConfig) fyne.Theme {
 	switch config.LightThemeFlag {
 	case true:
 		return NewLightTheme()

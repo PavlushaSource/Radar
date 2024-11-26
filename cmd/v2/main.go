@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"github.com/PavlushaSource/Radar/view/UI"
+	"github.com/PavlushaSource/Radar/view/api"
 	config "github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
-	"image/color"
 )
 
 func main() {
@@ -17,18 +18,19 @@ func main() {
 	w := a.NewWindow("V2")
 	config := config.NewApplicationConfig()
 
-	rect := canvas.NewRectangle(color.White)
-	rect.Resize(config.WindowSize)
-
 	bg := canvas.NewImageFromResource(utils.ResourceBgJpg)
 	bg.FillMode = canvas.ImageFillStretch
 
 	//w.SetContent(bg)
 
-	c := UI.NewCatsContainer(config, bg)
+	dog := UI.NewDogUI(UI.GetResourceDogSvg(api.Color(1)))
+	dog.Resize(fyne.NewSize(100, 100))
+	dog.Move(fyne.NewPos(300, 300))
+
+	c := UI.NewDogsContainer(config, bg, []*UI.DogUI{dog})
 	c.Resize(config.WindowSize)
 	w.SetContent(container.NewStack(bg, c))
-	//dog := UI.NewDogUI(UI.GetResourceCatSvg(api.Color(1)))
+	//dog := UI.NewDogUI(UI.GetResourceDogSvg(api.Color(1)))
 	//w.SetContent(dog)
 
 	//go func() {
@@ -36,7 +38,7 @@ func main() {
 	//	fmt.Println("SET COLOR NEW")
 	//	for i, d := range c.Dogs {
 	//		if i%2 == 0 {
-	//			d.SetColor(UI.GetResourceCatSvg(api.Color(2)))
+	//			d.SetImage(UI.GetResourceDogSvg(api.Color(2)))
 	//		}
 	//	}
 	//}()

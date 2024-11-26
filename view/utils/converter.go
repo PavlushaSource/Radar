@@ -25,18 +25,3 @@ var ConvertGeometryTypeToString = map[api.GeometryType]string{
 	api.Simple: "Simple",
 	api.Vector: "Vector",
 }
-
-//func ConvertVMCatToCanvasCat(source []api.Cat, catSize fyne.Size) []fyne.CanvasObject {
-//	canvasCatSlice := make([]fyne.CanvasObject, 0, len(source))
-//
-//	// TODO parallel this. ATTENTION: len(source), cap(source)
-//	for _, s := range source {
-//		img := canvas.NewImageFromResource(getResourceCatSvg(s.Color))
-//		img.Move(fyne.Position{X: s.X, Y: s.Y})
-//		img.Resize(catSize)
-//
-//		canvasCatSlice = append(canvasCatSlice, img)
-//	}
-//
-//	return canvasCatSlice
-//}

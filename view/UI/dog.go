@@ -51,7 +51,7 @@ type DogUI struct {
 	Resource fyne.Resource
 }
 
-func (d *DogUI) SetColor(color fyne.Resource) {
+func (d *DogUI) SetImage(color fyne.Resource) {
 	d.Resource = color
 	d.Refresh()
 }
@@ -65,4 +65,9 @@ func NewDogUI(color fyne.Resource) *DogUI {
 	dog.ExtendBaseWidget(dog)
 
 	return dog
+}
+
+func (d *DogUI) MoveCenterPosition() {
+	d.Move(d.Position().Add(fyne.NewPos(d.Size().Width/2, d.Size().Height/2)))
+
 }

@@ -2,12 +2,11 @@ package viewModel
 
 import (
 	"context"
+	"fyne.io/fyne/v2"
+	"github.com/PavlushaSource/Radar/view/UI"
 	"github.com/PavlushaSource/Radar/view/utils"
-	"image/color"
 	"sync"
 	"time"
-
-	"fyne.io/fyne/v2/canvas"
 
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
@@ -17,8 +16,10 @@ import (
 )
 
 type Producer interface {
-	StartAppAction(context.Context) []*canvas.Circle
+	StartAppAction(context.Context) []*UI.DogUI
 }
+
+const maxRadiusMove = 500
 
 type producer struct {
 	chosenRadarSettings api.RadarSettings
@@ -44,8 +45,7 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 		float64(appConfig.WindowSize.Height),
 		float64(appConfig.WindowSize.Width),
 		make([]geom.Barrier, 0),
-		// math.Max(float64(appConfig.WindowSize.Height), float64(appConfig.WindowSize.Width))/10,
-		30,
+		maxRadiusMove,
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 		rndAsync,
 	)
@@ -58,70 +58,89 @@ func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.Applicati
 		rndAsync,
 		chosenRadarSettings.BufferSize,
 	)
-
-	//return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
 // StartAppAction TODO: in viewModel we must work with view Api, not directly with CanvasObjects
-func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
+func (p *producer) StartAppAction(ctx context.Context) []*UI.DogUI {
 	getCh, putCh := p.engine.Run(ctx)
 
 	state := <-getCh
 
-	// Initial cats positions
-	VMCat := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.CatSize, p.appConfig.ScaleEngineCoord)
-	cats := ConvertVMCatToCanvasCat(VMCat, p.appConfig.CatSize)
+	// Initial dogs positions
+	VMDog := p.ConvertStateToVMDog(state)
+	dogs := p.ConvertVMDogToUI(VMDog)
 	putCh <- state
-	colorCats := make([]api.Color, len(cats))
-	for i, c := range VMCat {
-		colorCats[i] = c.Color
-	}
-
+	//prevTime := time.Now()
 	catsUpdater := func() {
 		state := <-getCh
-		VMCatNext := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.CatSize, p.appConfig.ScaleEngineCoord)
-		uiCats := ConvertVMCatToCanvasCat(VMCatNext, p.appConfig.CatSize)
-
-		for i, c := range VMCatNext {
-			VMCatNext[i].Color = c.Color
-		}
-
+		VMCatNext := p.ConvertStateToVMDog(state)
+		UIDogs := p.ConvertVMDogToUI(VMCatNext)
 		putCh <- state
 		wg := sync.WaitGroup{}
-		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
-		for i, c := range uiCats {
-			wg.Add(2)
+		//fmt.Println("СОБАКИ НАЧАЛО АНИМАЦИИ ", time.Since(prevTime))
+		//prevTime = time.Now()
+		for i, d := range UIDogs {
+			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				//cats[i].Move(c.Position())
-				//cats[i].FillColor = c.FillColor
-				//cats[i].Refresh()
-				//fmt.Printf("Next postition %d cat = %f / %f\n", i, c.Position().X, c.Position().Y)
-				utils.AnimateCat(
-					cats[i].Position(),
-					c.Position(),
-					cats[i],
+				utils.AnimateDog(
+					dogs[i].Position(),
+					d.Position(),
+					dogs[i],
 					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()),
 				)
-			}()
-			go func() {
-				defer wg.Done()
-				//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
-				canvas.NewColorRGBAAnimation(ColorToRGBA(colorCats[i]), ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime, func(c color.Color) {
-					cats[i].FillColor = c
-					canvas.Refresh(cats[i])
-				}).Start()
-				colorCats[i] = VMCatNext[i].Color
+				dogs[i].SetImage(d.Resource)
 			}()
 		}
 		wg.Wait()
+		//fmt.Println("ВСЕ ГОРУТИНЫ АНИМАЦИИ Отработали")
 	}
 
 	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
 
 	withTicker(ctx, ticker, catsUpdater)
 
-	return cats
+	return dogs
+}
+
+func (p *producer) ConvertStateToVMDog(state *engine.State) []api.Dog {
+
+	vmDogs := make([]api.Dog, 0, state.NumCats())
+
+	for i := 0; i < state.NumCats(); i++ {
+		c := state.CatsElementAt(i)
+		var x, y float32
+		if i == 0 {
+			x = float32(0)*p.appConfig.Scale + p.appConfig.PaddingEnginePos.X
+			y = float32(0)*p.appConfig.Scale + p.appConfig.PaddingEnginePos.Y
+
+		} else {
+
+		}
+		x = float32(c.X())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.X
+		y = float32(c.Y())*p.appConfig.Scale + p.appConfig.PaddingEnginePos.Y
+		//fmt.Println("X | Y", x, y, "ENGINE X | Y", c.X(), c.Y(), "SCALE", p.appConfig.Scale)
+		vmDogs = append(vmDogs, api.Dog{X: x, Y: y, Color: ConvertStatusToColor(c)})
+	}
+
+	return vmDogs
+
+}
+
+func (p *producer) ConvertVMDogToUI(source []api.Dog) []*UI.DogUI {
+	DogUISlice := make([]*UI.DogUI, 0)
+
+	// TODO parallel this. ATTENTION: len(source), cap(source)
+	for _, s := range source {
+		dog := UI.NewDogUI(UI.GetResourceDogSvg(s.Color))
+		dog.Resize(fyne.NewSize(p.appConfig.CatSize.Width*p.appConfig.Scale, p.appConfig.CatSize.Height*p.appConfig.Scale))
+		dog.Move(fyne.Position{X: s.X, Y: s.Y})
+		dog.MoveCenterPosition()
+
+		DogUISlice = append(DogUISlice, dog)
+	}
+	return DogUISlice
+
 }
 
 // TODO: move to external core package

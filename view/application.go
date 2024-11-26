@@ -2,9 +2,6 @@ package view
 
 import (
 	"context"
-	"fmt"
-	"image/color"
-
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -22,14 +19,14 @@ type RadarApplication interface {
 	Run(ctx context.Context)
 
 	App() fyne.App
-	AppConfig() config.ApplicationConfig
+	AppConfig() *config.ApplicationConfig
 	SettingsMenuWindow() fyne.Window
 	RadarWindow() fyne.Window
 }
 
 type radarApplication struct {
 	app                  fyne.App
-	appConfig            config.ApplicationConfig
+	appConfig            *config.ApplicationConfig
 	settingsMenuWindow   fyne.Window
 	radarWindow          fyne.Window
 	radarEngineCtxCancel context.CancelFunc
@@ -39,7 +36,7 @@ func (app *radarApplication) App() fyne.App {
 	return app.app
 }
 
-func (app *radarApplication) AppConfig() config.ApplicationConfig {
+func (app *radarApplication) AppConfig() *config.ApplicationConfig {
 	return app.appConfig
 }
 
@@ -101,50 +98,20 @@ func (app *radarApplication) applyTheme() {
 	app.app.Settings().SetTheme(customTheme.GetApplicationTheme(app.appConfig))
 }
 
-func (app *radarApplication) registerScaleKeyboard(catsContainer *fyne.Container, layout *UI.CatsLayout) func(rune) {
-	width := app.appConfig.WindowSize.Width
-	height := app.appConfig.WindowSize.Height
-
-	return func(r rune) {
-		if r == '=' {
-			layout.Scale = utils.IncreaseScale(catsContainer, width, height, layout.Scale)
-		} else if r == '-' {
-			layout.Scale = utils.DecreaseScale(catsContainer, width, height, layout.Scale)
-		} else {
-			return
-		}
-	}
+func (app *radarApplication) createBackground() *canvas.Image {
+	bg := canvas.NewImageFromResource(utils.ResourceBgJpg)
+	bg.FillMode = canvas.ImageFillStretch
+	return bg
 }
 
-func (app *radarApplication) createRadarWindowContent(cats []*canvas.Circle) fyne.CanvasObject {
+func (app *radarApplication) createRadarWindowContent(dogs []*UI.DogUI) fyne.CanvasObject {
 	toolbarCreate := UI.CreateToolbarFunction(app.homeAction, app.themeAction, app.fullscreenAction)
+	bg := app.createBackground()
 
-	// TODO add CatsLayout constructor
-	// create border rectangle and move this
-	rect := canvas.NewRectangle(color.Transparent)
-	rect.Resize(fyne.NewSize(app.appConfig.WindowSize.Width, app.appConfig.WindowSize.Height))
-	rect.StrokeColor = color.Black
-	rect.StrokeWidth = 3
+	dogsContainer := UI.NewDogsContainer(app.appConfig, bg, dogs)
+	//content := container.NewStack(bg, dogsContainer)
 
-	fmt.Println("SIZE RECT", rect.Size())
-	layout := UI.CatsLayout{Scale: 1, PrevSize: app.appConfig.WindowSize, AppConfig: &app.appConfig, Border: rect}
-
-	catsUI := make([]fyne.CanvasObject, 0)
-	for i := range cats {
-		catsUI = append(catsUI, cats[i])
-	}
-	objects := make([]fyne.CanvasObject, 0, len(cats)+1)
-	objects = append(objects, rect)
-	objects = append(objects, catsUI...)
-
-	catsContainer := container.New(&layout, objects...)
-	//TODO: change windowSize -> container size
-	catsScrollableContainer := UI.CreateCatsScrollableContainer(catsUI, catsContainer, &layout, app.appConfig.WindowSize, &app.appConfig)
-	content := container.NewStack(catsScrollableContainer, catsContainer)
-
-	app.RadarWindow().Canvas().SetOnTypedRune(app.registerScaleKeyboard(catsContainer, &layout))
-
-	return container.NewBorder(toolbarCreate(), nil, nil, nil, content)
+	return container.NewStack(bg, container.NewBorder(toolbarCreate(), nil, nil, nil, dogsContainer))
 }
 
 func (app *radarApplication) createMainWindowContent(ctx context.Context) {
@@ -157,15 +124,15 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 	onConfigChoice := func(chosenRadarSettings api.RadarSettings) {
 		loadWindow.Start()
 
-		producer := viewModel.NewProducer(chosenRadarSettings, &app.appConfig)
+		producer := viewModel.NewProducer(chosenRadarSettings, app.appConfig)
 		// TODO: Don't store enfine ctx cancel func in radarApplication (check homeAction)
 		ctx, cancel := context.WithCancel(ctx)
 		app.radarEngineCtxCancel = cancel
-		canvasCats := producer.StartAppAction(ctx)
+		dogsUI := producer.StartAppAction(ctx)
 
 		loadWindow.Stop()
 
-		app.radarWindow.SetContent(app.createRadarWindowContent(canvasCats))
+		app.radarWindow.SetContent(app.createRadarWindowContent(dogsUI))
 
 		app.hideWindow(app.settingsMenuWindow)
 		app.showWindow(app.radarWindow)

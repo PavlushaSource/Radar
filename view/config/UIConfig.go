@@ -3,9 +3,10 @@ package config
 import "fyne.io/fyne/v2"
 
 const (
-	WindowW = 1920
-	WindowH = 1080
-	CatSize = 50
+	WindowW      = 1920
+	WindowH      = 1080
+	CatSize      = 50
+	DefaultScale = 1
 )
 
 type ApplicationConfig struct {
@@ -15,22 +16,21 @@ type ApplicationConfig struct {
 	FullScreenMode bool
 	InMainMenu     bool
 
-	ScaleEngineCoord   fyne.Size
-	PaddingEngineCoord fyne.Position
+	Scale            float32
+	PaddingEnginePos fyne.Position
 }
 
 func NewApplicationConfig() *ApplicationConfig {
-	scale := fyne.NewSize(1, 1)
 
-	padding := fyne.NewPos(WindowW*(1-scale.Width)/2, WindowH*(1-scale.Width)/2)
+	padding := fyne.NewPos(WindowW*(1-DefaultScale)/2, WindowH*(1-DefaultScale)/2)
 
 	return &ApplicationConfig{
-		WindowSize:         fyne.NewSize(WindowW, WindowH),
-		CatSize:            fyne.NewSize(CatSize, CatSize),
-		LightThemeFlag:     true,
-		FullScreenMode:     false,
-		InMainMenu:         true,
-		ScaleEngineCoord:   scale,
-		PaddingEngineCoord: padding,
+		WindowSize:       fyne.NewSize(WindowW, WindowH),
+		CatSize:          fyne.NewSize(CatSize, CatSize),
+		LightThemeFlag:   true,
+		FullScreenMode:   false,
+		InMainMenu:       true,
+		Scale:            DefaultScale,
+		PaddingEnginePos: padding,
 	}
 }

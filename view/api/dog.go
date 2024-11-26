@@ -1,6 +1,6 @@
 package api
 
-type Cat struct {
+type Dog struct {
 	X     float32
 	Y     float32
 	Color Color
