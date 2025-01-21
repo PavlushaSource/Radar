@@ -41,7 +41,7 @@ func (d *CatsLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size
 			//fmt.Println("moveCat", moveCat)
 			//fmt.Println("SCALE CENTER", d.ScaleCenter)
 			//currentSize := obj.Size()
-			nextSize := fyne.NewSize(config.CatSize*d.Scale, config.CatSize*d.Scale)
+			nextSize := fyne.NewSize(config.DogSize*d.Scale, config.DogSize*d.Scale)
 			obj.Resize(nextSize)
 			obj.Move(obj.Position().Add(moveCat))
 			//fmt.Println("Cat position", obj.Position())

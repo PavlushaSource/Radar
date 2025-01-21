@@ -3,8 +3,6 @@ package view
 import (
 	"context"
 	"fmt"
-	"image/color"
-
 	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -16,6 +14,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/customTheme"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/PavlushaSource/Radar/viewModel"
+	"image/color"
 )
 
 type RadarApplication interface {
@@ -169,6 +168,12 @@ func (app *radarApplication) createMainWindowContent(ctx context.Context) {
 
 		app.hideWindow(app.settingsMenuWindow)
 		app.showWindow(app.radarWindow)
+
+		//ebiten.SetWindowSize(1920, 1080)
+		//ebiten.SetWindowTitle("Fill")
+		//if err := ebiten.RunGame(game.NewGame(&app.appConfig)); err != nil {
+		//	log.Fatal(err)
+		//}
 
 		app.appConfig.InMainMenu = false
 	}

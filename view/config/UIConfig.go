@@ -5,12 +5,12 @@ import "fyne.io/fyne/v2"
 const (
 	WindowH = 480
 	WindowW = 480
-	CatSize = 10
+	DogSize = 10
 )
 
 type ApplicationConfig struct {
 	WindowSize     fyne.Size
-	CatSize        fyne.Size
+	DogSize        fyne.Size
 	LightThemeFlag bool
 	FullScreenMode bool
 	InMainMenu     bool
@@ -22,7 +22,7 @@ type ApplicationConfig struct {
 func NewApplicationConfig() ApplicationConfig {
 	return ApplicationConfig{
 		WindowSize:         fyne.NewSize(WindowH, WindowW),
-		CatSize:            fyne.NewSize(CatSize, CatSize),
+		DogSize:            fyne.NewSize(DogSize, DogSize),
 		LightThemeFlag:     true,
 		FullScreenMode:     false,
 		InMainMenu:         true,

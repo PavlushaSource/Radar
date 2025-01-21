@@ -20,6 +20,7 @@ func ConvertStateToVMCat(state *engine.State, scaleEngineCoord fyne.Size, paddin
 
 	for i := 0; i < state.NumCats(); i++ {
 		c := state.CatsElementAt(i)
+		fmt.Println(c.X(), c.Y())
 		x := float32(c.X())*scaleEngineCoord.Width + paddingEngineCoord.X - moveX
 		y := float32(c.Y())*scaleEngineCoord.Height + paddingEngineCoord.Y - moveY
 		vmCats = append(vmCats, api.Cat{X: x, Y: y, Color: ConvertStatusToColor(c)})
