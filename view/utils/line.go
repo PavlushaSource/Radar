@@ -1,4 +1,4 @@
-package game
+package utils
 
 type Line struct {
 	StartX, StartY, EndX, EndY float32

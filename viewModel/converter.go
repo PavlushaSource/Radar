@@ -2,14 +2,12 @@ package viewModel
 
 import (
 	"fmt"
-	"image/color"
-
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/view/api"
+	"github.com/PavlushaSource/Radar/view/config"
 )
 
 func ConvertStateToVMCat(state *engine.State, scaleEngineCoord fyne.Size, paddingEngineCoord fyne.Position, catSize fyne.Size, catScale fyne.Size) []api.Cat {
@@ -29,69 +27,23 @@ func ConvertStateToVMCat(state *engine.State, scaleEngineCoord fyne.Size, paddin
 	return vmCats
 }
 
-func ColorToRGBA(c api.Color) color.NRGBA {
-	switch c {
-	case api.Red:
-		return color.NRGBA{R: 0xff, A: 0xff}
-	case api.Blue:
-		return color.NRGBA{B: 0xff, A: 0xff}
-	case api.Purple:
-		return color.NRGBA{G: 0xff, A: 0xff}
-	}
-	fmt.Println("HIHIHIHI")
-	return color.NRGBA{}
+var choiceDistanceCalcType = map[config.DistanceType]geom.Distance{
+	config.Euclidean:   geom.EuclideanDistance,
+	config.Manhattan:   geom.ManhattanDistance,
+	config.Curvilinear: geom.CurvilinearDistance,
 }
 
-func ConvertStatusToColor(cat *engine.Cat) api.Color {
-	switch cat.Status() {
-	case engine.Calm:
-		return api.Blue
-	case engine.Hissing:
-		return api.Purple
-	case engine.Fighting:
-		return api.Red
-	default:
-		panic("Undefined Color")
-	}
-}
-
-var choiceDistanceCalcType = map[api.DistanceType]geom.Distance{
-	api.Euclidean:   geom.EuclideanDistance,
-	api.Manhattan:   geom.ManhattanDistance,
-	api.Curvilinear: geom.CurvilinearDistance,
-}
-
-func ConvertDistanceTypeToDistance(distanceType api.DistanceType) geom.Distance {
+func ConvertDistanceTypeToDistance(distanceType config.DistanceType) geom.Distance {
 	return choiceDistanceCalcType[distanceType]
 }
 
 type GeomCreateFunction func(height float64, width float64, barriers []geom.Barrier, maxMoveDistance float64, distance geom.Distance, rndAsync rnd.RndAsync) geom.Geom
 
-var choiceGeometryCalcType = map[api.GeometryType]GeomCreateFunction{
-	api.Simple: geom.NewSimpleGeom,
-	api.Vector: geom.NewVectorGeom,
+var choiceGeometryCalcType = map[config.GeometryType]GeomCreateFunction{
+	config.Simple: geom.NewSimpleGeom,
+	config.Vector: geom.NewVectorGeom,
 }
 
-func ConvertGeometryTypeToGeometry(geometryType api.GeometryType) GeomCreateFunction {
+func ConvertGeometryTypeToGeometry(geometryType config.GeometryType) GeomCreateFunction {
 	return choiceGeometryCalcType[geometryType]
-}
-
-func ConvertVMCatToCanvasCat(source []api.Cat, catSize fyne.Size) []*canvas.Circle {
-	canvasCatSlice := make([]*canvas.Circle, 0)
-
-	// TODO parallel this. ATTENTION: len(source), cap(source)
-	for _, s := range source {
-		circle := canvas.NewCircle(ColorToRGBA(s.Color))
-		circle.Move(fyne.Position{X: s.X, Y: s.Y})
-		circle.Resize(catSize)
-		circle.FillColor.RGBA()
-		//img := canvas.NewImageFromResource(getResourceCatSvg(s.Color))
-		//img.Move(fyne.Position{X: s.X, Y: s.Y})
-		//img.Resize(catSize)
-
-		//canvasCatSlice = append(canvasCatSlice, img)
-		canvasCatSlice = append(canvasCatSlice, circle)
-	}
-
-	return canvasCatSlice
 }
