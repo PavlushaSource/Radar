@@ -2,8 +2,7 @@ package viewModel
 
 import (
 	"context"
-	"github.com/PavlushaSource/Radar/view"
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/PavlushaSource/Radar/view/api"
 	"sync"
 	"time"
 
@@ -15,21 +14,22 @@ import (
 )
 
 type Producer interface {
-	StartAppAction(context.Context)
+	StartAppAction(context.Context) []*api.Dog
 }
 
 type producer struct {
 	next          chan struct{}
 	radarSettings *config.RadarSettings
 	appConfig     *config.ApplicationConfig
-	app           *view.Application
 	engine        *engine.Engine
 }
 
-func NewProducer(app *view.Application) Producer {
+func NewProducer(settings *config.RadarSettings, appConfig *config.ApplicationConfig, next chan struct{}, borders []utils.Line) Producer {
 	return &producer{
-		app:    app,
-		engine: newEngine(app.RadarSettings, app.AppConfig, app.Borders),
+		next:          next,
+		radarSettings: settings,
+		appConfig:     appConfig,
+		engine:        newEngine(settings, appConfig, borders),
 	}
 }
 
@@ -57,18 +57,17 @@ func newEngine(chosenRadarSettings *config.RadarSettings, appConfig *config.Appl
 	)
 }
 
-func (p *producer) StartAppAction(ctx context.Context) {
+func (p *producer) StartAppAction(ctx context.Context) []*api.Dog {
 	getCh, putCh := p.engine.Run(ctx)
 
 	state := <-getCh
 
 	// Initial dogs positions
 	dogs := ConvertStateToViewDog(state)
-	p.app.Dogs = dogs
 	putCh <- state
 
 	dogsUpdater := func() {
-		<-p.app.NeedNext
+		<-p.next
 
 		state = <-getCh
 		nextDogs := ConvertStateToViewDog(state)
@@ -79,29 +78,16 @@ func (p *producer) StartAppAction(ctx context.Context) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				dogs[i].UpdateDogMove(d, p.app.RadarSettings.UpdateTime)
+				dogs[i].UpdateDogMove(d, p.radarSettings.UpdateTime)
 				dogs[i].Status = d.Status
 			}()
 		}
 		wg.Wait()
 	}
 
-	ticker := time.Tick(p.app.RadarSettings.UpdateTime)
+	ticker := time.Tick(p.radarSettings.UpdateTime)
 
 	utils.WithTicker(ctx, ticker, dogsUpdater)
 
-	return
-}
-
-func StartApp(app *view.Application) {
-	app.InMainMenu = false
-
-	ebiten.SetWindowTitle("Собака съела товар, теперь она наркоман")
-	ebiten.SetWindowSize(app.AppConfig.WindowX, app.AppConfig.WindowY)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	app.CancelFunc = cancel
-	prod := NewProducer(app)
-	prod.StartAppAction(ctx)
+	return dogs
 }
