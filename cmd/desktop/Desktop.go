@@ -1,15 +1,20 @@
 package main
 
 import (
-	"context"
+	"github.com/hajimehoshi/ebiten/v2"
+	"log"
 
 	"github.com/PavlushaSource/Radar/view"
 )
 
 func main() {
-	ctx := context.Background()
+
+	ebiten.SetWindowSize(400, 400)
+	ebiten.SetWindowTitle("Menu")
 
 	app := view.NewApplication()
 
-	app.Run(ctx)
+	if err := ebiten.RunGame(app); err != nil {
+		log.Fatal(err)
+	}
 }

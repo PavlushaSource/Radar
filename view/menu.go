@@ -2,7 +2,6 @@ package view
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
@@ -225,14 +224,19 @@ func NewMenu(app *Application) *ebitenui.UI {
 			fmt.Println("Error:", resError)
 			return
 		}
+		//app.InMainMenu = false
+		//
+		//ebiten.SetWindowTitle("Собака съела товар")
+		//ebiten.SetWindowSize(app.AppConfig.WindowX, app.AppConfig.WindowY)
 
-		app.InMainMenu = false
-		ebiten.SetFullscreen(true)
-		ctx, cancel := context.WithCancel(context.Background())
+		//ctx, cancel := context.WithCancel(context.Background())
+		//
+		//app.CancelFunc = cancel
+		//prod := viewModel.NewProducer(app)
+		//prod.StartAppAction(ctx)
+		//viewModel.StartApp(app)
+		viewModel.NewProducer(app)
 
-		app.cancelFunc = cancel
-		producer := viewModel.NewProducer(app)
-		producer.StartAppAction(ctx)
 	})
 
 	innerContainer.AddChild(resetButton)

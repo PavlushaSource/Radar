@@ -45,7 +45,7 @@ func (engine *Engine) Run(ctx context.Context) (chan *State, chan *State) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			buffCh <- newState(engine.processor.numCats)
+			buffCh <- newState(engine.processor.numDogs)
 		}()
 	}
 	wg.Wait()
@@ -67,14 +67,14 @@ func (engine *Engine) Run(ctx context.Context) (chan *State, chan *State) {
 
 // NewEngine creates new Engine object by
 // fight and hiss radiuses,
-// number of cats,
+// number of Dogs,
 // geometry,
 // async random and
 // buffer size.
-func NewEngine(radiusFight float64, radiusHiss float64, numCats int, geom geom.Geom, rndAsync rnd.RndAsync, bufferSize int) *Engine {
+func NewEngine(radiusFight float64, radiusHiss float64, numDogs int, geom geom.Geom, rndAsync rnd.RndAsync, bufferSize int) *Engine {
 	engine := new(Engine)
 
-	engine.processor = newProcessor(radiusFight, radiusHiss, numCats, geom, rndAsync)
+	engine.processor = newProcessor(radiusFight, radiusHiss, numDogs, geom, rndAsync)
 
 	engine.bufferSize = bufferSize
 

@@ -9,7 +9,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/utils"
 )
 
-func convertEngineToViewStatus(status engine.Status) view.Status {
+func convertEngineToViewStatus(status engine.Status) *view.Status {
 	var st view.Status
 	switch status {
 	case engine.Hissing:
@@ -20,7 +20,7 @@ func convertEngineToViewStatus(status engine.Status) view.Status {
 		st = view.Run
 	}
 
-	return st
+	return &st
 }
 
 func ConvertStateToViewDog(state *engine.State) []*view.Dog {
@@ -65,7 +65,10 @@ func ConvertBorderViewToBarriers(borders []utils.Line) []geom.Barrier {
 
 	for _, b := range borders {
 		startPoint := geom.NewPoint(b.StartX, b.StartY)
-		barriers = append(barriers, geom.NewBarrier())
+		endPoint := geom.NewPoint(b.EndX, b.EndY)
+
+		barriers = append(barriers, geom.NewBarrier(startPoint, endPoint))
 	}
 
+	return barriers
 }

@@ -4,50 +4,50 @@ import (
 	"github.com/PavlushaSource/Radar/model/geom"
 )
 
-// Status is an int alias that represents the cat status:
+// Status is an int alias that represents the dogstatus:
 // calm, hissing or fighting.
 type Status int
 
 const (
-	// The status of the cat, meaning that the it is calm.
+	// The status of the dog, meaning that the it is calm.
 	Calm Status = iota
-	// The status of the cat, meaning that the it hisses at another cat.
+	// The status of the dog, meaning that the it hisses at another cat.
 	Hissing
-	// The status of a cat, meaning that it is fighting with another cat.
+	// The status of a dog, meaning that it is fighting with another cat.
 	Fighting
 )
 
-// Cat is a type that represents a cat with its status and coordinates.
-type Cat struct {
-	// Cat status.
+// Dogis a type that represents a dogwith its status and coordinates.
+type Dog struct {
+	// Dogstatus.
 	status Status
-	// Hiss flag used to calculate the cat status after interaction.
+	// Hiss flag used to calculate the dogstatus after interaction.
 	hissing bool
-	// Cat point on a plane.
+	// Dogpoint on a plane.
 	geom.Point
 }
 
-// Public getter of the cat status.
+// Public getter of the dog status.
 //
-// Status returns cat status.
-func (cat *Cat) Status() Status {
-	return cat.status
+// Status returns dog status.
+func (dog *Dog) Status() Status {
+	return dog.status
 }
 
-// Clean is a helper function that sets the Cat fields to their default value.
-func (cat *Cat) clean() {
-	cat.status = Calm
-	cat.hissing = false
+// Clean is a helper function that sets the Dogfields to their default value.
+func (dog *Dog) clean() {
+	dog.status = Calm
+	dog.hissing = false
 }
 
-// newCat creates and returns a new Cat object.
-func newCat() *Cat {
-	cat := new(Cat)
+// newDogcreates and returns a new Dogobject.
+func newDog() *Dog {
+	dog := new(Dog)
 
-	cat.status = Calm
-	cat.hissing = false
+	dog.status = Calm
+	dog.hissing = false
 
-	cat.Point = geom.NewPoint(0, 0)
+	dog.Point = geom.NewPoint(0, 0)
 
-	return cat
+	return dog
 }
