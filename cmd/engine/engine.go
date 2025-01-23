@@ -26,14 +26,14 @@ func main() {
 
 	// start := time.Now()
 	// state := <-getCh
-	// fmt.Println(state.NumCats())
+	// fmt.Println(state.NumDogs())
 	// end := time.Now()
 	// fmt.Println("Calculation time:", end.Sub(start))
 
 	for {
 		start := time.Now()
 		state := <-getCh
-		fmt.Println(state.NumCats())
+		fmt.Println(state.NumDogs())
 		putCh <- state
 		end := time.Now()
 		fmt.Println("Calculation time:", end.Sub(start))

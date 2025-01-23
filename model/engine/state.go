@@ -10,13 +10,13 @@ type State struct {
 	cats []*Cat
 }
 
-// NumCats is a State method that returns the number of cats.
-func (state *State) NumCats() int {
+// NumDogs is a State method that returns the number of cats.
+func (state *State) NumDogs() int {
 	return len(state.cats)
 }
 
-// CatsElementAt is a State method that returns the cat by its index.
-func (state *State) CatsElementAt(idx int) *Cat {
+// DogsElementAt is a State method that returns the cat by its index.
+func (state *State) DogsElementAt(idx int) *Cat {
 	return state.cats[idx]
 }
 

@@ -2,7 +2,11 @@ package view
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/utils"
+	"github.com/PavlushaSource/Radar/viewModel"
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -12,6 +16,13 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
 	"log"
+)
+
+const (
+	dogCountInput      = "Count dogs"
+	updateTimeInput    = "Update time"
+	angryRadiusInput   = "Angry radius"
+	hissingRadiusInput = "Hissing radius"
 )
 
 var face, _ = loadFont(20)
@@ -116,28 +127,28 @@ func AddComboboxFieldWithText(container *widget.Container, labelText string, ent
 			widget.ListOpts.Entries(entries),
 			widget.ListOpts.ScrollContainerOpts(
 				widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-					Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+					Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+					Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+					Mask:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 				}),
 			),
 			widget.ListOpts.SliderOpts(
 				widget.SliderOpts.Images(&widget.SliderTrackImage{
-					Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+					Idle:  image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+					Hover: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 				}, buttonImage),
 				widget.SliderOpts.MinHandleSize(5),
 				widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2))),
 			widget.ListOpts.EntryFontFace(face),
 			widget.ListOpts.EntryColor(&widget.ListEntryColor{
-				Selected:                   color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused selected entry
-				Unselected:                 color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused unselected entry
+				Selected:                   color.NRGBA{R: 254, G: 255, B: 255, A: 255}, //Foreground color for the unfocused selected entry
+				Unselected:                 color.NRGBA{R: 254, G: 255, B: 255, A: 255}, //Foreground color for the unfocused unselected entry
 				SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
 				SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, //Background color for the focused selected entry
 				FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, //Background color for the focused unselected entry
-				DisabledUnselected:         color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled unselected entry
-				DisabledSelected:           color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled selected entry
-				DisabledSelectedBackground: color.NRGBA{100, 100, 100, 255},             //Background color for the disabled selected entry
+				DisabledUnselected:         color.NRGBA{R: 100, G: 100, B: 100, A: 255}, //Foreground color for the disabled unselected entry
+				DisabledSelected:           color.NRGBA{R: 100, G: 100, B: 100, A: 255}, //Foreground color for the disabled selected entry
+				DisabledSelectedBackground: color.NRGBA{R: 100, G: 100, B: 100, A: 255}, //Background color for the disabled selected entry
 			}),
 			widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
 		),
@@ -175,51 +186,55 @@ func NewButton(buttonText string, clickHandler func(args *widget.ButtonClickedEv
 	)
 }
 
-func NewUI(game *Application) *ebitenui.UI {
+func NewMenu(app *Application) *ebitenui.UI {
 	rootContainer := NewCenterContainer()
 	innerContainer := NewGridContainer()
 
-	AddInputFieldWithText(innerContainer, "Count cats", "integer number")
-	AddInputFieldWithText(innerContainer, "Update time", "time in second")
-	AddInputFieldWithText(innerContainer, "Angry radius", "in pixels")
-	AddInputFieldWithText(innerContainer, "Hissing radius", "in pixels")
+	AddInputFieldWithText(innerContainer, dogCountInput, "integer number")
+	AddInputFieldWithText(innerContainer, updateTimeInput, "time in second")
+	AddInputFieldWithText(innerContainer, angryRadiusInput, "in pixels")
+	AddInputFieldWithText(innerContainer, hissingRadiusInput, "in pixels")
 
 	AddComboboxFieldWithText(innerContainer, "Distance type", []any{"Euclidean", "Manhattan", "Curvilinear"}, func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-		fmt.Println(args.Entry)
+		app.RadarSettings.DistanceType = utils.ConvertStringToDistanceType[args.Entry.(string)]
 	})
 
 	AddComboboxFieldWithText(innerContainer, "Geometry type", []any{"Simple", "Vector"}, func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-		fmt.Println(args.Entry)
+		app.RadarSettings.GeometryType = utils.ConvertStringToGeometryType[args.Entry.(string)]
 	})
 
 	resetButton := NewButton("Reset", func(args *widget.ButtonClickedEventArgs) {
 		for _, input := range InputFields {
 			input.SetText("")
 		}
+		resetSetting := config.NewRadarSettings()
+		resetSetting.DistanceType = app.RadarSettings.DistanceType
+		resetSetting.GeometryType = app.RadarSettings.GeometryType
+
+		app.RadarSettings = resetSetting
 	})
 
 	runButton := NewButton("Run", func(args *widget.ButtonClickedEventArgs) {
-		game.InMainMenu = false
-		ebiten.SetFullscreen(true)
+		var resError error
+		resError = utils.SaveError(resError, app.RadarSettings.SetCountDogs(InputFields[dogCountInput].GetText()))
+		resError = utils.SaveError(resError, app.RadarSettings.SetUpdateTime(InputFields[updateTimeInput].GetText()))
+		resError = utils.SaveError(resError, app.RadarSettings.SetFightingRadius(InputFields[angryRadiusInput].GetText()))
+		resError = utils.SaveError(resError, app.RadarSettings.SetHissingRadius(InputFields[hissingRadiusInput].GetText()))
 
-		// TODO validate appConfig HERE
+		if resError != nil {
+			fmt.Println("Error:", resError)
+			return
+		}
+
+		app.InMainMenu = false
+		ebiten.SetFullscreen(true)
+		ctx, cancel := context.WithCancel(context.Background())
+
+		app.cancelFunc = cancel
+		producer := viewModel.NewProducer(app)
+		producer.StartAppAction(ctx)
 	})
 
-	//	OnSubmit: func() {
-	//	var resErr error
-	//
-	//	resErr = utils.SaveError(resErr, radarSettings.SetCountCats(catCount.Text))
-	//	resErr = utils.SaveError(resErr, radarSettings.SetUpdateTime(updateTime.Text))
-	//	resErr = utils.SaveError(resErr, radarSettings.SetFightingRadius(fightingRadius.Text))
-	//	resErr = utils.SaveError(resErr, radarSettings.SetHissingRadius(hissingRadius.Text))
-	//
-	//	if resErr != nil {
-	//		onConfigChoiceError(resErr)
-	//	} else {
-	//		onConfigChoice(radarSettings)
-	//	}
-	//},
-	//
 	innerContainer.AddChild(resetButton)
 	innerContainer.AddChild(runButton)
 
@@ -230,36 +245,19 @@ func NewUI(game *Application) *ebitenui.UI {
 	}
 }
 
-// Layout implements Application.
-func (a *Application) Layout(outsideWidth int, outsideHeight int) (int, int) {
-	return outsideWidth, outsideHeight
-}
-
-// Update implements Application.
-func (a *Application) Update() error {
-
-	if a.InMainMenu {
-		// Обновление UI
-		if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-			a.Menu.ChangeFocus(widget.FOCUS_PREVIOUS)
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-			a.Menu.ChangeFocus(widget.FOCUS_NEXT)
-		}
-		a.Menu.Update()
-	} else {
-		//a.menu.Update()
+func (app *Application) UpdateMenu() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+		app.Menu.ChangeFocus(widget.FOCUS_PREVIOUS)
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
+		app.Menu.ChangeFocus(widget.FOCUS_NEXT)
+	}
+	app.Menu.Update()
 	return nil
 }
 
-// Draw implements Ebiten's Draw method.
-func (a *Application) Draw(screen *ebiten.Image) {
-	if a.InMainMenu {
-		a.Menu.Draw(screen)
-	} else {
-		screen.Fill(color.NRGBA{R: 100, G: 150, B: 200, A: 255})
-	}
+func (app *Application) DrawMenu(screen *ebiten.Image) {
+	app.Menu.Draw(screen)
 }
 
 func loadFont(size float64) (text.Face, error) {
