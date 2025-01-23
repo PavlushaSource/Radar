@@ -1,10 +1,9 @@
 package view
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/PavlushaSource/Radar/resources"
+	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/ebitenui/ebitenui"
@@ -12,37 +11,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"image"
 	"image/color"
-	"log"
 	"math"
 )
 
-var (
-	DogImageFight *ebiten.Image
-	DogImageHiss  *ebiten.Image
-	DogImageRun   *ebiten.Image
-	borderImage   *ebiten.Image
-)
-
-func NewImgFromResource(res []byte) *ebiten.Image {
-	img, _, err := image.Decode(bytes.NewReader(res))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return ebiten.NewImageFromImage(img)
-}
-
-func init() {
-	DogImageFight = NewImgFromResource(resources.DogFight_png)
-	DogImageHiss = NewImgFromResource(resources.DogHiss_png)
-	DogImageRun = NewImgFromResource(resources.DogRun_png)
-	borderImage = NewImgFromResource(resources.Border_png)
-}
-
 type Application struct {
-	Dogs     []*Dog
+	Dogs     []*api.Dog
 	NeedNext chan struct{}
 
 	AppConfig     *config.ApplicationConfig
@@ -63,13 +37,13 @@ type Application struct {
 
 func NewApplication() *Application {
 	app := &Application{}
-	app.Dogs = make([]*Dog, 0)
+	app.Dogs = make([]*api.Dog, 0)
 
 	app.AppConfig = config.NewApplicationConfig()
 	app.RadarSettings = config.NewRadarSettings()
 
 	app.cursor = utils.NewCursor()
-	app.bg = NewBackground(app.AppConfig)
+	app.bg = utils.NewBackground(app.AppConfig)
 	app.Menu = NewMenu(app)
 	app.Borders = make([]utils.Line, 0)
 
@@ -88,24 +62,24 @@ func (app *Application) ResetDragAndZoom() {
 func (app *Application) UpdateDragAndZoom() {
 	var scrollY float64
 	if ebiten.IsKeyPressed(ebiten.KeyC) || ebiten.IsKeyPressed(ebiten.KeyPageDown) {
-		scrollY = -scaleDiff
+		scrollY = -utils.ScaleDiff
 	} else if ebiten.IsKeyPressed(ebiten.KeyE) || ebiten.IsKeyPressed(ebiten.KeyPageUp) {
-		scrollY = scaleDiff
+		scrollY = utils.ScaleDiff
 	} else {
 		_, scrollY = ebiten.Wheel()
-		if scrollY < -scaleDiff*4 {
-			scrollY = -scaleDiff * 4
-		} else if scrollY > scaleDiff*4 {
-			scrollY = scaleDiff * 4
+		if scrollY < -utils.ScaleDiff*4 {
+			scrollY = -utils.ScaleDiff * 4
+		} else if scrollY > utils.ScaleDiff*4 {
+			scrollY = utils.ScaleDiff * 4
 		}
 	}
 	app.AppConfig.CamScaleTo += scrollY * (app.AppConfig.CamScaleTo / 7)
 
 	// Clamp target zoom level.
-	if app.AppConfig.CamScaleTo < minScale {
-		app.AppConfig.CamScaleTo = minScale
-	} else if app.AppConfig.CamScaleTo > maxScale {
-		app.AppConfig.CamScaleTo = maxScale
+	if app.AppConfig.CamScaleTo < utils.MinScale {
+		app.AppConfig.CamScaleTo = utils.MinScale
+	} else if app.AppConfig.CamScaleTo > utils.MaxScale {
+		app.AppConfig.CamScaleTo = utils.MaxScale
 	}
 
 	// Smooth zoom transition.
@@ -202,14 +176,14 @@ func (app *Application) Update() error {
 func (app *Application) DrawLineBorder(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
-	moveToCenterX := float64(borderImage.Bounds().Dx()) / 2 * BorderImgScale
-	moveToCenterY := float64(borderImage.Bounds().Dy()) / 2 * BorderImgScale
+	moveToCenterX := float64(utils.BorderImage.Bounds().Dx()) / 2 * utils.BorderImgScale
+	moveToCenterY := float64(utils.BorderImage.Bounds().Dy()) / 2 * utils.BorderImgScale
 
 	if app.cursor.Pressed {
 		op.GeoM.Reset()
 		op.GeoM.Translate(-moveToCenterX, -moveToCenterY)
 		vector.StrokeLine(screen, float32(app.cursor.StartX), float32(app.cursor.StartY),
-			float32(app.cursor.EndX), float32(app.cursor.EndY), BorderLineWidth, color.RGBA{R: 255, A: 64}, false)
+			float32(app.cursor.EndX), float32(app.cursor.EndY), utils.BorderLineWidth, color.RGBA{R: 255, A: 64}, false)
 	}
 }
 
@@ -223,14 +197,14 @@ func (app *Application) DrawBorder(screen *ebiten.Image) {
 		dy := line.EndY - line.StartY
 		length := math.Hypot(dx, dy)
 		dirX, dirY := dx/length, dy/length
-		r := float64(borderImage.Bounds().Dx()) * BorderImgScale / 2
+		r := float64(utils.BorderImage.Bounds().Dx()) * utils.BorderImgScale / 2
 		step := r * 1.5
 
 		for i := 0.0; i < length; i += step {
 			op.GeoM.Reset()
 
-			op.GeoM.Translate(float64(-borderImage.Bounds().Dx()/2), float64(-borderImage.Bounds().Dx()/2))
-			op.GeoM.Scale(BorderImgScale, BorderImgScale)
+			op.GeoM.Translate(float64(-utils.BorderImage.Bounds().Dx()/2), float64(-utils.BorderImage.Bounds().Dx()/2))
+			op.GeoM.Scale(utils.BorderImgScale, utils.BorderImgScale)
 
 			centerX := line.StartX + dirX*i
 			centerY := line.StartY + dirY*i
@@ -239,7 +213,7 @@ func (app *Application) DrawBorder(screen *ebiten.Image) {
 			op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 			op.GeoM.Scale(scale, scale)
 
-			screen.DrawImage(borderImage, op)
+			screen.DrawImage(utils.BorderImage, op)
 		}
 	}
 }
@@ -282,12 +256,12 @@ func (app *Application) Draw(screen *ebiten.Image) {
 	//target.DrawImage(app.bg, op)
 
 	// draw dogs
-	dogImgWidth, dogImgHeight := DogImageRun.Bounds().Dx(), DogImageRun.Bounds().Dy()
+	dogImgWidth, dogImgHeight := utils.DogImageRun.Bounds().Dx(), utils.DogImageRun.Bounds().Dy()
 	for _, d := range app.Dogs {
 		op.GeoM.Reset()
 
 		op.GeoM.Translate(float64(-dogImgWidth/2), float64(-dogImgHeight/2))
-		op.GeoM.Scale(DogImgScale, DogImgScale)
+		op.GeoM.Scale(utils.DogImgScale, utils.DogImgScale)
 
 		op.GeoM.Translate(d.X, d.Y)
 		op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)

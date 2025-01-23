@@ -2,6 +2,7 @@ package view
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
@@ -15,6 +16,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
 	"log"
+	"time"
 )
 
 const (
@@ -224,19 +226,18 @@ func NewMenu(app *Application) *ebitenui.UI {
 			fmt.Println("Error:", resError)
 			return
 		}
-		//app.InMainMenu = false
-		//
-		//ebiten.SetWindowTitle("Собака съела товар")
-		//ebiten.SetWindowSize(app.AppConfig.WindowX, app.AppConfig.WindowY)
+		app.InMainMenu = false
 
-		//ctx, cancel := context.WithCancel(context.Background())
-		//
-		//app.CancelFunc = cancel
-		//prod := viewModel.NewProducer(app)
-		//prod.StartAppAction(ctx)
-		//viewModel.StartApp(app)
-		viewModel.NewProducer(app)
+		ebiten.SetWindowTitle("Собака съела товар")
+		ebiten.SetWindowSize(app.AppConfig.WindowX, app.AppConfig.WindowY)
 
+		fmt.Println("WORKK!!!")
+		time.Sleep(2 * time.Second)
+		ctx, cancel := context.WithCancel(context.Background())
+
+		app.CancelFunc = cancel
+		prod := viewModel.NewProducer(app.RadarSettings, app.AppConfig, app.NeedNext, app.Borders)
+		app.Dogs = prod.StartAppAction(ctx)
 	})
 
 	innerContainer.AddChild(resetButton)

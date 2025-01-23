@@ -1,4 +1,4 @@
-package view
+package utils
 
 import (
 	"github.com/PavlushaSource/Radar/view/config"
@@ -19,11 +19,11 @@ const (
 	BorderImgScale  = 0.1
 	BorderLineWidth = 3
 
-	fps = 60
+	Fps = 60
 
-	maxScale  = 100
-	minScale  = 0.01
-	scaleDiff = 0.25
+	MaxScale  = 100
+	MinScale  = 0.01
+	ScaleDiff = 0.25
 )
 
 func NewBackground(appConfig *config.ApplicationConfig) *ebiten.Image {

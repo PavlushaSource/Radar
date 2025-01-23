@@ -1,16 +1,17 @@
-package view
+package api
 
 import (
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"math"
 	"time"
 )
 
 type Dog struct {
-	Status     *Status
-	NextStatus *Status
+	Status     *utils.Status
+	NextStatus *utils.Status
 
 	X, Y           float64
 	XNext, YNext   float64
@@ -18,8 +19,8 @@ type Dog struct {
 }
 
 func calculateDogSpeed(x_a, x_b, y_a, y_b float64, updateTime time.Duration) (float64, float64) {
-	speedX := (x_b - x_a) / (updateTime.Seconds() * fps)
-	speedY := (y_b - y_a) / (updateTime.Seconds() * fps)
+	speedX := (x_b - x_a) / (updateTime.Seconds() * utils.Fps)
+	speedY := (y_b - y_a) / (updateTime.Seconds() * utils.Fps)
 
 	return speedX, speedY
 }
@@ -63,12 +64,12 @@ func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 
 func (d *Dog) StatusToImg() *ebiten.Image {
 	switch *d.Status {
-	case Run:
-		return DogImageRun
-	case Fight:
-		return DogImageFight
-	case Hiss:
-		return DogImageHiss
+	case utils.Run:
+		return utils.DogImageRun
+	case utils.Fight:
+		return utils.DogImageFight
+	case utils.Hiss:
+		return utils.DogImageHiss
 	}
 	return nil
 }

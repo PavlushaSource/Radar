@@ -4,31 +4,31 @@ import (
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
-	"github.com/PavlushaSource/Radar/view"
+	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 )
 
-func convertEngineToViewStatus(status engine.Status) *view.Status {
-	var st view.Status
+func convertEngineToViewStatus(status engine.Status) *utils.Status {
+	var st utils.Status
 	switch status {
 	case engine.Hissing:
-		st = view.Hiss
+		st = utils.Hiss
 	case engine.Fighting:
-		st = view.Fight
+		st = utils.Fight
 	case engine.Calm:
-		st = view.Run
+		st = utils.Run
 	}
 
 	return &st
 }
 
-func ConvertStateToViewDog(state *engine.State) []*view.Dog {
-	dogs := make([]*view.Dog, 0, state.NumDogs())
+func ConvertStateToViewDog(state *engine.State) []*api.Dog {
+	dogs := make([]*api.Dog, 0, state.NumDogs())
 
 	for i := 0; i < state.NumDogs(); i++ {
 		c := state.DogsElementAt(i)
-		dogs = append(dogs, &view.Dog{
+		dogs = append(dogs, &api.Dog{
 			Status: convertEngineToViewStatus(c.Status()),
 			X:      c.X(), Y: c.Y(),
 			XNext: -1, YNext: -1,
