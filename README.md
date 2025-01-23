@@ -4,7 +4,7 @@
 
 ## GUI
  - Think about fixies main menu buttons positions on Macos
- - Reinit model on run (cat swim away)
+ - Reinit model on run (dogswim away)
    - Stop modeling on exit to main menu??
  - Set app icon
  - Update app name (now Desctop)

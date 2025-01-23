@@ -12,8 +12,8 @@ type processor struct {
 	// Current state
 	state *State
 
-	// Number of cats.
-	numCats int
+	// Number of Dogs.
+	numDogs int
 	// Using geometry.
 	geom geom.Geom
 	// Fight radius.
@@ -35,27 +35,27 @@ type processor struct {
 	numRows int
 	// Array of cells.
 	//
-	// cell[cellIdx] stores the indeces of cats in the cell with index cellIdx.
+	// cell[cellIdx] stores the indeces of Dogs in the cell with index cellIdx.
 	cells [][]int
 
-	// Point pool used to store cats coordinates between model state processing.
+	// Point pool used to store Dogs coordinates between model state processing.
 	points []geom.Point
 }
 
 // newProcessor creates new processor object by
 // fight and hiss radiuses,
-// number of cats,
+// number of Dogs,
 // geometry and
 // async random.
-func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry geom.Geom, rndAsync rnd.RndAsync) *processor {
+func newProcessor(radiusFight float64, radiusHiss float64, numDogs int, geometry geom.Geom, rndAsync rnd.RndAsync) *processor {
 	var wg sync.WaitGroup
 
 	processor := new(processor)
 
-	processor.numCats = numCats
+	processor.numDogs = numDogs
 	processor.geom = geometry
 
-	processor.points = make([]geom.Point, numCats)
+	processor.points = make([]geom.Point, numDogs)
 
 	for i := range processor.points {
 		processor.points[i] = geometry.NewRandomPoint()
@@ -64,7 +64,7 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 	processor.radiusFight = radiusFight
 	processor.radiusHiss = radiusHiss
 
-	optimalCellSize := calculateOptimalCellSize(numCats, geometry.Height()*geometry.Width())
+	optimalCellSize := calculateOptimalCellSize(numDogs, geometry.Height()*geometry.Width())
 	if radiusHiss < optimalCellSize {
 		processor.cellSize = optimalCellSize
 	} else {
@@ -82,7 +82,7 @@ func newProcessor(radiusFight float64, radiusHiss float64, numCats int, geometry
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.cells[i] = make([]int, 0, numCats)
+			processor.cells[i] = make([]int, 0, numDogs)
 		}()
 	}
 
@@ -95,9 +95,9 @@ func (processor *processor) process(state *State) *State {
 	processor.state = state
 	processor.setUp()
 
-	processor.moveCats()
+	processor.moveDogs()
 	processor.cellSplitting()
-	processor.processCatsNeighbours()
+	processor.processDogsNeighbours()
 
 	processor.tearDown()
 
@@ -124,7 +124,7 @@ func (processor *processor) setUp() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.points[i].Copy(processor.state.cats[i])
+			processor.points[i].Copy(processor.state.Dogs[i])
 		}()
 	}
 	wg.Wait()
@@ -139,40 +139,40 @@ func (processor *processor) tearDown() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.state.cats[i].Copy(processor.points[i])
+			processor.state.Dogs[i].Copy(processor.points[i])
 		}()
 	}
 
 	wg.Wait()
 }
 
-// moveCats is a processor method that changes the coordinates of cats in model state.
-func (processor *processor) moveCats() {
+// moveDogs is a processor method that changes the coordinates of Dogs in model state.
+func (processor *processor) moveDogs() {
 	var wg sync.WaitGroup
 
-	for i := range processor.state.cats {
+	for i := range processor.state.Dogs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.geom.MovePoint(processor.state.cats[i])
+			processor.geom.MovePoint(processor.state.Dogs[i])
 		}()
 	}
 
 	wg.Wait()
 }
 
-// moveCats is a processor method that partitions cats into cells based on their coordinates.
+// moveDogs is a processor method that partitions Dogs into cells based on their coordinates.
 func (processor *processor) cellSplitting() {
-	for i := range processor.state.cats {
-		if success, cell := processor.tryGetCell(processor.state.cats[i]); success {
+	for i := range processor.state.Dogs {
+		if success, cell := processor.tryGetCell(processor.state.Dogs[i]); success {
 			processor.cells[cell] = append(processor.cells[cell], i)
 		}
 	}
 }
 
-// processCatsNeighbors is a processor method
-// that calculates the new statuses of cats based on their interactions with neighbors.
-func (processor *processor) processCatsNeighbours() {
+// processDogsNeighbors is a processor method
+// that calculates the new statuses of Dogs based on their interactions with neighbors.
+func (processor *processor) processDogsNeighbours() {
 	var wg sync.WaitGroup
 
 	for col := 0; col < processor.numColumns-1; col++ {
@@ -229,11 +229,11 @@ func (processor *processor) processCatsNeighbours() {
 
 	wg.Wait()
 
-	for i := range processor.state.cats {
+	for i := range processor.state.Dogs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			processor.updateCatStatus(i)
+			processor.updateDogstatus(i)
 		}()
 	}
 
@@ -241,7 +241,7 @@ func (processor *processor) processCatsNeighbours() {
 }
 
 // processCellWithSelf is a processor method
-// that handles the interaction of cats in a cell
+// that handles the interaction of Dogs in a cell
 // based on the given column and row of the cell.
 func (processor *processor) processCellWithSelf(col int, row int) {
 	for _, ci := range processor.cells[processor.cellByRowColumn(row, col)] {
@@ -255,7 +255,7 @@ func (processor *processor) processCellWithSelf(col int, row int) {
 }
 
 // processCellWithOther is a processor method
-// that handles the interaction of cats from cell with cats from another cell
+// that handles the interaction of Dogs from cell with Dogs from another cell
 // based on the given columns and rows of the cells.
 func (processor *processor) processCellWithOther(col int, row int, otherCol int, otherRow int) {
 	for _, ci := range processor.cells[processor.cellByRowColumn(row, col)] {
@@ -266,25 +266,25 @@ func (processor *processor) processCellWithOther(col int, row int, otherCol int,
 }
 
 // proccessPair is a processor method
-// that handles the interation a cat with each other.
-func (processor *processor) proccessPair(catIdx int, neighbourIdx int) {
-	dist := processor.geom.Distance(processor.state.cats[catIdx], processor.state.cats[neighbourIdx])
+// that handles the interation a dogwith each other.
+func (processor *processor) proccessPair(dogIdx int, neighbourIdx int) {
+	dist := processor.geom.Distance(processor.state.Dogs[dogIdx], processor.state.Dogs[neighbourIdx])
 
 	if dist <= processor.radiusFight {
-		processor.state.cats[catIdx].status = Fighting
-		processor.state.cats[neighbourIdx].status = Fighting
+		processor.state.Dogs[dogIdx].status = Fighting
+		processor.state.Dogs[neighbourIdx].status = Fighting
 	} else if dist <= processor.radiusHiss {
-		if processor.rndAsync.Float64ByInt(catIdx*neighbourIdx*processor.cf) <= (1 / (dist * dist)) {
-			processor.state.cats[catIdx].hissing = true
-			processor.state.cats[neighbourIdx].hissing = true
+		if processor.rndAsync.Float64ByInt(dogIdx*neighbourIdx*processor.cf) <= (1 / (dist * dist)) {
+			processor.state.Dogs[dogIdx].hissing = true
+			processor.state.Dogs[neighbourIdx].hissing = true
 		}
 	}
 }
 
-// updateCatStatus is a processor method
-// that attempts to set the given cat status to Hissing.
-func (processor *processor) updateCatStatus(idx int) {
-	if processor.state.cats[idx].hissing && (processor.state.cats[idx].status == Calm) {
-		processor.state.cats[idx].status = Hissing
+// updateDogstatus is a processor method
+// that attempts to set the given dogstatus to Hissing.
+func (processor *processor) updateDogstatus(idx int) {
+	if processor.state.Dogs[idx].hissing && (processor.state.Dogs[idx].status == Calm) {
+		processor.state.Dogs[idx].status = Hissing
 	}
 }

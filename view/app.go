@@ -51,14 +51,14 @@ type Application struct {
 	cursor  utils.Cursor
 	bg      *ebiten.Image
 	Menu    *ebitenui.UI
-	borders []utils.Line
+	Borders []utils.Line
 
 	Pause       bool
 	BordersDraw bool
 
 	InMainMenu bool
 
-	cancelFunc context.CancelFunc
+	CancelFunc context.CancelFunc
 }
 
 func NewApplication() *Application {
@@ -71,7 +71,7 @@ func NewApplication() *Application {
 	app.cursor = utils.NewCursor()
 	app.bg = NewBackground(app.AppConfig)
 	app.Menu = NewMenu(app)
-	app.borders = make([]utils.Line, 0)
+	app.Borders = make([]utils.Line, 0)
 
 	app.InMainMenu = true
 
@@ -88,24 +88,24 @@ func (app *Application) ResetDragAndZoom() {
 func (app *Application) UpdateDragAndZoom() {
 	var scrollY float64
 	if ebiten.IsKeyPressed(ebiten.KeyC) || ebiten.IsKeyPressed(ebiten.KeyPageDown) {
-		scrollY = -0.25
+		scrollY = -scaleDiff
 	} else if ebiten.IsKeyPressed(ebiten.KeyE) || ebiten.IsKeyPressed(ebiten.KeyPageUp) {
-		scrollY = 0.25
+		scrollY = scaleDiff
 	} else {
 		_, scrollY = ebiten.Wheel()
-		if scrollY < -1 {
-			scrollY = -1
-		} else if scrollY > 1 {
-			scrollY = 1
+		if scrollY < -scaleDiff*4 {
+			scrollY = -scaleDiff * 4
+		} else if scrollY > scaleDiff*4 {
+			scrollY = scaleDiff * 4
 		}
 	}
 	app.AppConfig.CamScaleTo += scrollY * (app.AppConfig.CamScaleTo / 7)
 
 	// Clamp target zoom level.
-	if app.AppConfig.CamScaleTo < 0.01 {
-		app.AppConfig.CamScaleTo = 0.01
-	} else if app.AppConfig.CamScaleTo > 100 {
-		app.AppConfig.CamScaleTo = 100
+	if app.AppConfig.CamScaleTo < minScale {
+		app.AppConfig.CamScaleTo = minScale
+	} else if app.AppConfig.CamScaleTo > maxScale {
+		app.AppConfig.CamScaleTo = maxScale
 	}
 
 	// Smooth zoom transition.
@@ -146,8 +146,9 @@ func (app *Application) UpdateCursor() {
 			app.cursor.StartX, app.cursor.StartY = mx, my
 		}
 		app.cursor.EndX, app.cursor.EndY = mx, my
-	} else {
-		app.cursor.Pressed = false
+	} else if app.cursor.EndX != 0 && app.cursor.EndY != 0 && app.cursor.StartX != 0 && app.cursor.StartY != 0 {
+		app.Borders = append(app.Borders, utils.NewLine(app.cursor.StartX, app.cursor.StartY, app.cursor.EndX, app.cursor.EndY))
+		app.cursor.Reset()
 	}
 }
 
@@ -157,12 +158,32 @@ func (app *Application) Update() error {
 		return err
 	}
 
-	app.UpdateDragAndZoom()
-	app.UpdateCursor()
-
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		app.Pause = !app.Pause
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		if app.BordersDraw {
+			fmt.Println(app.Borders)
+		} else {
+			////app.CancelFunc()
+			//select {
+			//case _, _ = <-app.NeedNext:
+			//default:
+			//	app.NeedNext <- struct{}{}
+			//}
+
+			//viewModel.StartApp(app)
+		}
+
+		app.BordersDraw = !app.BordersDraw
+	}
+
+	if app.BordersDraw {
+		app.UpdateCursor()
+		return nil
+	}
+
+	app.UpdateDragAndZoom()
 
 	if app.Pause {
 		return nil
@@ -173,9 +194,63 @@ func (app *Application) Update() error {
 		flagGetNext = flagGetNext && d.Update()
 	}
 	if flagGetNext {
-		app.NeedNext <- struct{}{}
+		//app.NeedNext <- struct{}{}
 	}
 	return nil
+}
+
+func (app *Application) DrawLineBorder(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+
+	moveToCenterX := float64(borderImage.Bounds().Dx()) / 2 * BorderImgScale
+	moveToCenterY := float64(borderImage.Bounds().Dy()) / 2 * BorderImgScale
+
+	if app.cursor.Pressed {
+		op.GeoM.Reset()
+		op.GeoM.Translate(-moveToCenterX, -moveToCenterY)
+		vector.StrokeLine(screen, float32(app.cursor.StartX), float32(app.cursor.StartY),
+			float32(app.cursor.EndX), float32(app.cursor.EndY), BorderLineWidth, color.RGBA{R: 255, A: 64}, false)
+	}
+}
+
+func (app *Application) DrawBorder(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	scale := app.AppConfig.CamScale
+
+	for _, line := range app.Borders {
+
+		dx := line.EndX - line.StartX
+		dy := line.EndY - line.StartY
+		length := math.Hypot(dx, dy)
+		dirX, dirY := dx/length, dy/length
+		r := float64(borderImage.Bounds().Dx()) * BorderImgScale / 2
+		step := r * 1.5
+
+		for i := 0.0; i < length; i += step {
+			op.GeoM.Reset()
+
+			op.GeoM.Translate(float64(-borderImage.Bounds().Dx()/2), float64(-borderImage.Bounds().Dx()/2))
+			op.GeoM.Scale(BorderImgScale, BorderImgScale)
+
+			centerX := line.StartX + dirX*i
+			centerY := line.StartY + dirY*i
+			op.GeoM.Translate(centerX, centerY)
+
+			op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
+			op.GeoM.Scale(scale, scale)
+
+			screen.DrawImage(borderImage, op)
+		}
+	}
+}
+
+func (app *Application) DrawBackground(screen *ebiten.Image) {
+	scale := app.AppConfig.CamScale
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
+	op.GeoM.Scale(scale, scale)
+	screen.DrawImage(app.bg, op)
 }
 
 func (app *Application) Draw(screen *ebiten.Image) {
@@ -184,106 +259,50 @@ func (app *Application) Draw(screen *ebiten.Image) {
 		return
 	}
 
-	//screen.Fill(color.RGBA{0xff, 0, 0, 0})
-	//cx, cy := ScreenWidth/2, ScreenHeight/2
-	target := screen
-	scale := app.AppConfig.CamScale
-	op := &ebiten.DrawImageOptions{}
-
-	op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
-	op.GeoM.Scale(scale, scale)
-	//op.GeoM.Translate(float64(cx), float64(cy))
-	target.DrawImage(app.bg, op)
-
-	if app.cursor.Pressed {
-		op.GeoM.Reset()
-		op.GeoM.Translate(-160, -160)
-		op.GeoM.Scale(0.1, 0.1)
-
-		//fmt.Println(scale)
-		//op.GeoM.Translate(-app.camX/scale, app.camY/scale)
-		//op.GeoM.Scale(scale, scale)
-
-		//fmt.Println(app.cursor.startY, app.cursor.pressed)
-		vector.StrokeLine(target, float32(app.cursor.StartX), float32(app.cursor.StartY), float32(app.cursor.EndX), float32(app.cursor.EndY), 3, color.RGBA{255, 0, 0, 64}, false)
-
-		//app.bg.DrawImage(borderImage, op)
-	} else {
-		app.borders = append(app.borders, utils.NewLine(app.cursor.StartX, app.cursor.StartY, app.cursor.EndX, app.cursor.EndY))
-
+	if app.BordersDraw {
+		app.ResetDragAndZoom()
+		app.DrawBackground(screen)
+		app.DrawLineBorder(screen)
+		app.DrawBorder(screen)
+		return
 	}
 
-	app.DrawBorder(target)
+	// draw bg
+	app.DrawBackground(screen)
 
+	// draw borders
+	app.DrawBorder(screen)
+
+	op := &ebiten.DrawImageOptions{}
+	scale := app.AppConfig.CamScale
+	//target := screen
+	//
+	//op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
+	//op.GeoM.Scale(scale, scale)
+	//target.DrawImage(app.bg, op)
+
+	// draw dogs
+	dogImgWidth, dogImgHeight := DogImageRun.Bounds().Dx(), DogImageRun.Bounds().Dy()
 	for _, d := range app.Dogs {
-
 		op.GeoM.Reset()
 
+		op.GeoM.Translate(float64(-dogImgWidth/2), float64(-dogImgHeight/2))
 		op.GeoM.Scale(DogImgScale, DogImgScale)
-		op.GeoM.Translate(float64(d.X), float64(d.Y))
-		op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 
+		op.GeoM.Translate(d.X, d.Y)
+		op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 		op.GeoM.Scale(scale, scale)
 
-		//op.GeoM.Translate(float64(cx), float64(cy))
-		//screen.DrawImage(DogImageFight, op)
-		d.Draw(target, op)
+		d.Draw(screen, op)
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\n", ebiten.ActualFPS()))
-
-	//screen.DrawImage(target, op)
-
 }
 
 func (app *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return app.AppConfig.WindowX, app.AppConfig.WindowY
-}
-
-func (app *Application) DrawBorder(screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-	scale := app.AppConfig.CamScale
-
-	for _, line := range app.borders {
-
-		dx := float64(line.EndX - line.StartX)
-		dy := float64(line.EndY - line.StartY)
-
-		length := math.Hypot(dx, dy)
-
-		dirX, dirY := dx/length, dy/length
-
-		r := 16.0
-		step := r * 1.5
-
-		for i := 0.0; i < length; i += step {
-			op.GeoM.Reset()
-
-			op.GeoM.Translate(-160, -160)
-			op.GeoM.Scale(borderImgScale, borderImgScale)
-
-			centerX := float64(line.StartX) + dirX*i
-			centerY := float64(line.StartY) + dirY*i
-
-			op.GeoM.Translate(centerX, centerY)
-
-			op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
-			op.GeoM.Scale(scale, scale)
-
-			screen.DrawImage(borderImage, op)
-			//app.bg.DrawImage(borderImage, op)
-			//vector.DrawFilledCircle(screen, float32(centerX), float32(centerY), float32(r), color.RGBA{0, 255, 0, 255}, false)
-		}
-		//currPosX := line.StartX
-		//currPosY := line.StartY
-		//op.GeoM.Reset()
-		//op.GeoM.Translate(-160, -160)
-		//op.GeoM.Scale(0.1, 0.1)
-		//
-		//op.GeoM.Translate(float64(currPosX)/scale, float64(currPosY)/scale)
-		//
-		//op.GeoM.Translate(-app.camX/scale, app.camY/scale)
-		//op.GeoM.Scale(scale, scale)
+	if app.InMainMenu {
+		return outsideWidth, outsideHeight
+	} else {
+		return app.AppConfig.WindowX, app.AppConfig.WindowY
 	}
-
 }

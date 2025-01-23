@@ -1,14 +1,14 @@
 package utils
 
 type Line struct {
-	StartX, StartY, EndX, EndY float32
+	StartX, StartY, EndX, EndY float64
 }
 
 func NewLine(startX, startY, endX, endY int) Line {
 	return Line{
-		StartX: float32(startX),
-		StartY: float32(startY),
-		EndX:   float32(endX),
-		EndY:   float32(endY),
+		StartX: float64(startX),
+		StartY: float64(startY),
+		EndX:   float64(endX),
+		EndY:   float64(endY),
 	}
 }

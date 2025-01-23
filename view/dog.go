@@ -5,12 +5,12 @@ import (
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/hajimehoshi/ebiten/v2"
 	"math"
-	"math/rand"
 	"time"
 )
 
 type Dog struct {
-	Status Status
+	Status     *Status
+	NextStatus *Status
 
 	X, Y           float64
 	XNext, YNext   float64
@@ -28,36 +28,17 @@ func (d *Dog) UpdateDogMove(newDog *Dog, updateTime time.Duration) {
 	d.XNext = newDog.X
 	d.YNext = newDog.Y
 
-	d.Status = newDog.Status
+	if d.Status == nil {
+		d.Status = newDog.Status
+	} else {
+		d.Status = d.NextStatus
+		d.NextStatus = newDog.Status
+	}
 
 	newSpeedX, newSpeedY := calculateDogSpeed(d.X, newDog.X, d.Y, newDog.Y, updateTime)
 
 	d.SpeedX = newSpeedX
 	d.SpeedY = newSpeedY
-}
-
-func NewDog() *Dog {
-	d := &Dog{}
-
-	i := rand.Intn(2)
-	switch i {
-	case 0:
-		d.Status = Fight
-	case 1:
-		d.Status = Hiss
-	}
-
-	w, h := int(float64(DogImageFight.Bounds().Dx())*DogImgScale), int(float64(DogImageFight.Bounds().Dy())*DogImgScale)
-
-	x, y := rand.Int()%1920, rand.Int()%1080
-	x = min(max(x, w), 1920-w)
-	y = min(max(y, h), 1080-h)
-
-	d.X = x
-	d.Y = y
-
-	d.SpeedX, d.SpeedY = 6, 6
-	return d
 }
 
 func (d *Dog) Update() bool {
@@ -77,23 +58,11 @@ func (d *Dog) Update() bool {
 }
 
 func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
-	//debugMessage := fmt.Sprintf("Screen size %v |  %v.\n", screen.Bounds().Dx(), screen.Bounds().Dy())
-	//ebitenutil.DebugPrint(screen, debugMessage)
-	//op.GeoM.Scale(d.DogImgScale, d.DogImgScale)
-	//op.GeoM.Translate(float64(d.X), float64(d.Y))
-	//switch d.Status {
-	//case Fight:
-	//	screen.DrawImage(DogImageFight, op)
-	//case Hiss:
-	//	screen.DrawImage(DogImageHiss, op)
-	//default:
-	//	fmt.Println("Dog Status not recognized")
-	//}
-	screen.DrawImage(DogImageFight, op)
+	screen.DrawImage(d.StatusToImg(), op)
 }
 
 func (d *Dog) StatusToImg() *ebiten.Image {
-	switch d.Status {
+	switch *d.Status {
 	case Run:
 		return DogImageRun
 	case Fight:

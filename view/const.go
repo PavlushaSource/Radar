@@ -15,11 +15,15 @@ const (
 )
 
 const (
-	DogImgScale    = 0.1
-	borderImgScale = 0.1
+	DogImgScale     = 0.1
+	BorderImgScale  = 0.1
+	BorderLineWidth = 3
 
-	fps      = 60
-	dogCount = 100
+	fps = 60
+
+	maxScale  = 100
+	minScale  = 0.01
+	scaleDiff = 0.25
 )
 
 func NewBackground(appConfig *config.ApplicationConfig) *ebiten.Image {

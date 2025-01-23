@@ -23,7 +23,7 @@ func (settings *RadarSettings) SetCountDogs(s string) error {
 	}
 
 	if n <= 0 || n > 5*1e5 {
-		return fmt.Errorf("boundaries cat must be 1 <= count <= 5 * 10^5, but got %d", n)
+		return fmt.Errorf("boundaries dogmust be 1 <= count <= 5 * 10^5, but got %d", n)
 	}
 
 	settings.CountDogs = n
