@@ -1,4 +1,4 @@
-package api
+package config
 
 import (
 	"fmt"
@@ -35,9 +35,9 @@ func (c *RadarSettings) SetUpdateTime(s string) error {
 		return fmt.Errorf("invalid update time %s: %w", s, err)
 	}
 
-	//if updateTime.Milliseconds() < (250 * time.Millisecond).Milliseconds() {
-	//	return fmt.Errorf("time must be greater than or eqaul to 250ms")
-	//}
+	if updateTime.Milliseconds() < (250 * time.Millisecond).Milliseconds() {
+		return fmt.Errorf("time must be greater than or eqaul to 250ms")
+	}
 
 	c.UpdateTime = updateTime
 	return nil

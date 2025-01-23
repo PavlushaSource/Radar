@@ -22,12 +22,12 @@ type Producer interface {
 }
 
 type producer struct {
-	chosenRadarSettings api.RadarSettings
+	chosenRadarSettings config.RadarSettings
 	appConfig           *config.ApplicationConfig
 	engine              *engine.Engine
 }
 
-func NewProducer(chosenRadarSettings api.RadarSettings, appConfig *config.ApplicationConfig) Producer {
+func NewProducer(chosenRadarSettings config.RadarSettings, appConfig *config.ApplicationConfig) Producer {
 	return &producer{
 		chosenRadarSettings: chosenRadarSettings,
 		appConfig:           appConfig,
@@ -35,7 +35,7 @@ func NewProducer(chosenRadarSettings api.RadarSettings, appConfig *config.Applic
 	}
 }
 
-func newEngine(chosenRadarSettings api.RadarSettings, appConfig config.ApplicationConfig) *engine.Engine {
+func newEngine(chosenRadarSettings config.RadarSettings, appConfig config.ApplicationConfig) *engine.Engine {
 	geomCreateFunc := ConvertGeometryTypeToGeometry(chosenRadarSettings.GeometryType)
 
 	rndAsync := rnd.NewRndCore()

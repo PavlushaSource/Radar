@@ -1,4 +1,4 @@
-package game
+package view
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -7,20 +7,11 @@ import (
 
 type Status int
 
-const (
-	fight Status = iota
-	hiss
-	run
-)
-
 type Dog struct {
-	status                   Status
-	imageScaleX, imageScaleY float64
+	status Status
 
-	screenWidth, screenHeight int
-
-	x, y int
-
+	x, y           int
+	xEnd, yEnd     int
 	speedX, speedY int
 }
 
@@ -35,10 +26,7 @@ func NewDog(image *ebiten.Image) *Dog {
 		d.status = hiss
 	}
 
-	d.imageScaleX = 0.1
-	d.imageScaleY = 0.1
-
-	w, h := int(float64(dogImageFight.Bounds().Dx())*d.imageScaleX), int(float64(dogImageFight.Bounds().Dy())*d.imageScaleY)
+	w, h := int(float64(dogImageFight.Bounds().Dx())*dogImgScale), int(float64(dogImageFight.Bounds().Dy())*dogImgScale)
 
 	x, y := rand.Int()%1920, rand.Int()%1080
 	x = min(max(x, w), 1920-w)
@@ -52,7 +40,7 @@ func NewDog(image *ebiten.Image) *Dog {
 }
 
 func (d *Dog) Update() {
-	w, h := int(float64(dogImageFight.Bounds().Dx())*d.imageScaleX), int(float64(dogImageFight.Bounds().Dy())*d.imageScaleY)
+	w, h := int(float64(dogImageFight.Bounds().Dx())*dogImgScale), int(float64(dogImageFight.Bounds().Dy())*dogImgScale)
 
 	if d.x+d.speedX > 1920-w || d.x+d.speedX < 0 {
 		d.speedX = -d.speedX
@@ -79,7 +67,7 @@ func (d *Dog) Update() {
 func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	//debugMessage := fmt.Sprintf("Screen size %v |  %v.\n", screen.Bounds().Dx(), screen.Bounds().Dy())
 	//ebitenutil.DebugPrint(screen, debugMessage)
-	//op.GeoM.Scale(d.imageScaleX, d.imageScaleY)
+	//op.GeoM.Scale(d.dogImgScale, d.dogImgScale)
 	//op.GeoM.Translate(float64(d.x), float64(d.y))
 	//switch d.status {
 	//case fight:
@@ -90,4 +78,11 @@ func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	//	fmt.Println("Dog status not recognized")
 	//}
 	screen.DrawImage(dogImageFight, op)
+}
+
+func (d *Dog) StatusToImg() *ebiten.Image {
+	switch d.status {
+	case run:
+
+	}
 }

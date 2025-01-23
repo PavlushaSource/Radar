@@ -1,4 +1,4 @@
-package api
+package config
 
 type DistanceType uint8
 

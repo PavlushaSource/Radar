@@ -1,32 +1,26 @@
 package config
 
-import "fyne.io/fyne/v2"
-
 const (
-	WindowH = 480
-	WindowW = 480
-	DogSize = 10
+	WindowW = 1920
+	WindowH = 1080
 )
 
 type ApplicationConfig struct {
-	WindowSize     fyne.Size
-	DogSize        fyne.Size
-	LightThemeFlag bool
-	FullScreenMode bool
-	InMainMenu     bool
-
-	ScaleEngineCoord   fyne.Size
-	PaddingEngineCoord fyne.Position
+	WindowX, WindowY int
+	InMainMenu       bool
+	CamX, CamY       float64
+	CamScale         float64
+	CamScaleTo       float64
 }
 
-func NewApplicationConfig() ApplicationConfig {
-	return ApplicationConfig{
-		WindowSize:         fyne.NewSize(WindowH, WindowW),
-		DogSize:            fyne.NewSize(DogSize, DogSize),
-		LightThemeFlag:     true,
-		FullScreenMode:     false,
-		InMainMenu:         true,
-		ScaleEngineCoord:   fyne.NewSize(1, 1),
-		PaddingEngineCoord: fyne.NewPos(0, 0),
+func NewApplicationConfig() *ApplicationConfig {
+	return &ApplicationConfig{
+		WindowX:    WindowW,
+		WindowY:    WindowH,
+		InMainMenu: true,
+		CamScale:   1,
+		CamScaleTo: 1,
+		CamX:       0,
+		CamY:       0,
 	}
 }
