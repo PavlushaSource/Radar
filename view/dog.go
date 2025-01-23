@@ -1,88 +1,105 @@
 package view
 
 import (
+	"github.com/PavlushaSource/Radar/model/geom"
+	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/hajimehoshi/ebiten/v2"
+	"math"
 	"math/rand"
+	"time"
 )
 
-type Status int
-
 type Dog struct {
-	status Status
+	Status Status
 
-	x, y           int
-	xEnd, yEnd     int
-	speedX, speedY int
+	X, Y           float64
+	XNext, YNext   float64
+	SpeedX, SpeedY float64
 }
 
-func NewDog(image *ebiten.Image) *Dog {
+func calculateDogSpeed(x_a, x_b, y_a, y_b float64, updateTime time.Duration) (float64, float64) {
+	speedX := (x_b - x_a) / (updateTime.Seconds() * fps)
+	speedY := (y_b - y_a) / (updateTime.Seconds() * fps)
+
+	return speedX, speedY
+}
+
+func (d *Dog) UpdateDogMove(newDog *Dog, updateTime time.Duration) {
+	d.XNext = newDog.X
+	d.YNext = newDog.Y
+
+	d.Status = newDog.Status
+
+	newSpeedX, newSpeedY := calculateDogSpeed(d.X, newDog.X, d.Y, newDog.Y, updateTime)
+
+	d.SpeedX = newSpeedX
+	d.SpeedY = newSpeedY
+}
+
+func NewDog() *Dog {
 	d := &Dog{}
 
 	i := rand.Intn(2)
 	switch i {
 	case 0:
-		d.status = fight
+		d.Status = Fight
 	case 1:
-		d.status = hiss
+		d.Status = Hiss
 	}
 
-	w, h := int(float64(dogImageFight.Bounds().Dx())*dogImgScale), int(float64(dogImageFight.Bounds().Dy())*dogImgScale)
+	w, h := int(float64(DogImageFight.Bounds().Dx())*DogImgScale), int(float64(DogImageFight.Bounds().Dy())*DogImgScale)
 
 	x, y := rand.Int()%1920, rand.Int()%1080
 	x = min(max(x, w), 1920-w)
 	y = min(max(y, h), 1080-h)
 
-	d.x = x
-	d.y = y
+	d.X = x
+	d.Y = y
 
-	d.speedX, d.speedY = 6, 6
+	d.SpeedX, d.SpeedY = 6, 6
 	return d
 }
 
-func (d *Dog) Update() {
-	w, h := int(float64(dogImageFight.Bounds().Dx())*dogImgScale), int(float64(dogImageFight.Bounds().Dy())*dogImgScale)
+func (d *Dog) Update() bool {
 
-	if d.x+d.speedX > 1920-w || d.x+d.speedX < 0 {
-		d.speedX = -d.speedX
-		if d.status == fight {
-			d.status = hiss
-		} else {
-			d.status = fight
-		}
+	if d.X+d.SpeedX <= config.WindowW && d.X+d.SpeedX >= 0 {
+		d.X += d.SpeedX
 	}
 
-	if d.y+d.speedY > 1080-h || d.y+d.speedY < 0 {
-		d.speedY = -d.speedY
-		if d.status == fight {
-			d.status = hiss
-		} else {
-			d.status = fight
-		}
+	if d.Y+d.SpeedY <= config.WindowH && d.Y+d.SpeedY >= 0 {
+		d.Y += d.SpeedY
 	}
 
-	d.x += d.speedX
-	d.y += d.speedY
+	if math.Abs(d.X-d.XNext) < geom.Eps || math.Abs(d.Y-d.YNext) < geom.Eps {
+		return true
+	}
+	return false
 }
 
 func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	//debugMessage := fmt.Sprintf("Screen size %v |  %v.\n", screen.Bounds().Dx(), screen.Bounds().Dy())
 	//ebitenutil.DebugPrint(screen, debugMessage)
-	//op.GeoM.Scale(d.dogImgScale, d.dogImgScale)
-	//op.GeoM.Translate(float64(d.x), float64(d.y))
-	//switch d.status {
-	//case fight:
-	//	screen.DrawImage(dogImageFight, op)
-	//case hiss:
-	//	screen.DrawImage(dogImageHiss, op)
+	//op.GeoM.Scale(d.DogImgScale, d.DogImgScale)
+	//op.GeoM.Translate(float64(d.X), float64(d.Y))
+	//switch d.Status {
+	//case Fight:
+	//	screen.DrawImage(DogImageFight, op)
+	//case Hiss:
+	//	screen.DrawImage(DogImageHiss, op)
 	//default:
-	//	fmt.Println("Dog status not recognized")
+	//	fmt.Println("Dog Status not recognized")
 	//}
-	screen.DrawImage(dogImageFight, op)
+	screen.DrawImage(DogImageFight, op)
 }
 
 func (d *Dog) StatusToImg() *ebiten.Image {
-	switch d.status {
-	case run:
-
+	switch d.Status {
+	case Run:
+		return DogImageRun
+	case Fight:
+		return DogImageFight
+	case Hiss:
+		return DogImageHiss
 	}
+	return nil
 }

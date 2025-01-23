@@ -13,7 +13,7 @@ func main() {
 
 	app := &view.Application{InMainMenu: true}
 
-	app.Menu = view.NewUI(app)
+	app.Menu = view.NewMenu(app)
 
 	err := ebiten.RunGame(app)
 	if err != nil {

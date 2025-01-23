@@ -9,13 +9,14 @@ import (
 type RadarSettings struct {
 	DistanceType                  DistanceType
 	UpdateTime                    time.Duration
-	CountCats                     int
+	CountDogs                     int
 	FightingRadius, HissingRadius float64
 	BufferSize                    int
 	GeometryType                  GeometryType
+	MaxRadiusMove                 float64
 }
 
-func (c *RadarSettings) SetCountCats(s string) error {
+func (settings *RadarSettings) SetCountDogs(s string) error {
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return fmt.Errorf("invalid convert count %s to integer: %w", s, err)
@@ -25,11 +26,11 @@ func (c *RadarSettings) SetCountCats(s string) error {
 		return fmt.Errorf("boundaries cat must be 1 <= count <= 5 * 10^5, but got %d", n)
 	}
 
-	c.CountCats = n
+	settings.CountDogs = n
 	return nil
 }
 
-func (c *RadarSettings) SetUpdateTime(s string) error {
+func (settings *RadarSettings) SetUpdateTime(s string) error {
 	updateTime, err := time.ParseDuration(s + "s")
 	if err != nil {
 		return fmt.Errorf("invalid update time %s: %w", s, err)
@@ -39,11 +40,11 @@ func (c *RadarSettings) SetUpdateTime(s string) error {
 		return fmt.Errorf("time must be greater than or eqaul to 250ms")
 	}
 
-	c.UpdateTime = updateTime
+	settings.UpdateTime = updateTime
 	return nil
 }
 
-func (c *RadarSettings) SetFightingRadius(s string) error {
+func (settings *RadarSettings) SetFightingRadius(s string) error {
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
@@ -52,11 +53,11 @@ func (c *RadarSettings) SetFightingRadius(s string) error {
 		return fmt.Errorf("radius must be greater than zero")
 	}
 
-	c.FightingRadius = r
+	settings.FightingRadius = r
 	return nil
 }
 
-func (c *RadarSettings) SetHissingRadius(s string) error {
+func (settings *RadarSettings) SetHissingRadius(s string) error {
 	r, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return fmt.Errorf("invalid convert radius %s to float: %w", s, err)
@@ -65,18 +66,19 @@ func (c *RadarSettings) SetHissingRadius(s string) error {
 		return fmt.Errorf("radius must be greater than zero")
 	}
 
-	c.HissingRadius = r
+	settings.HissingRadius = r
 	return nil
 }
 
-func NewRadarSettings() RadarSettings {
-	return RadarSettings{
+func NewRadarSettings() *RadarSettings {
+	return &RadarSettings{
 		DistanceType:   Euclidean,
 		UpdateTime:     time.Millisecond * 2000,
-		CountCats:      25,
+		CountDogs:      25,
 		FightingRadius: 100,
 		HissingRadius:  200,
 		BufferSize:     16,
 		GeometryType:   Simple,
+		MaxRadiusMove:  50,
 	}
 }

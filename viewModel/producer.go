@@ -2,51 +2,44 @@ package viewModel
 
 import (
 	"context"
-	"image/color"
+	"github.com/PavlushaSource/Radar/view"
 	"sync"
 	"time"
 
 	"github.com/PavlushaSource/Radar/view/utils"
 
-	"fyne.io/fyne/v2/canvas"
-
 	"github.com/PavlushaSource/Radar/model/core/rnd"
 	"github.com/PavlushaSource/Radar/model/engine"
 	"github.com/PavlushaSource/Radar/model/geom"
-	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 )
 
 type Producer interface {
-	StartAppAction(context.Context) []*canvas.Circle
+	StartAppAction(context.Context)
 }
 
 type producer struct {
-	chosenRadarSettings config.RadarSettings
-	appConfig           *config.ApplicationConfig
-	engine              *engine.Engine
+	app    *view.Application
+	engine *engine.Engine
 }
 
-func NewProducer(chosenRadarSettings config.RadarSettings, appConfig *config.ApplicationConfig) Producer {
+func NewProducer(app *view.Application) Producer {
 	return &producer{
-		chosenRadarSettings: chosenRadarSettings,
-		appConfig:           appConfig,
-		engine:              newEngine(chosenRadarSettings, *appConfig),
+		app:    app,
+		engine: newEngine(app.RadarSettings, app.AppConfig),
 	}
 }
 
-func newEngine(chosenRadarSettings config.RadarSettings, appConfig config.ApplicationConfig) *engine.Engine {
+func newEngine(chosenRadarSettings *config.RadarSettings, appConfig *config.ApplicationConfig) *engine.Engine {
 	geomCreateFunc := ConvertGeometryTypeToGeometry(chosenRadarSettings.GeometryType)
 
 	rndAsync := rnd.NewRndCore()
 
-	// TODO: Think about passing max distance to geom
 	geomImpl := geomCreateFunc(
-		float64(appConfig.WindowSize.Height),
-		float64(appConfig.WindowSize.Width),
+		float64(appConfig.WindowY),
+		float64(appConfig.WindowX),
 		make([]geom.Barrier, 0),
-		// math.Max(float64(appConfig.WindowSize.Height), float64(appConfig.WindowSize.Width))/10,
-		30,
+		chosenRadarSettings.MaxRadiusMove,
 		ConvertDistanceTypeToDistance(chosenRadarSettings.DistanceType),
 		rndAsync,
 	)
@@ -54,88 +47,45 @@ func newEngine(chosenRadarSettings config.RadarSettings, appConfig config.Applic
 	return engine.NewEngine(
 		chosenRadarSettings.FightingRadius,
 		chosenRadarSettings.HissingRadius,
-		chosenRadarSettings.CountCats,
+		chosenRadarSettings.CountDogs,
 		geomImpl,
 		rndAsync,
 		chosenRadarSettings.BufferSize,
 	)
-
-	//return runner.NewRunner(engineImpl, chosenRadarSettings.BufferSize)
 }
 
-// StartAppAction TODO: in viewModel we must work with view Api, not directly with CanvasObjects
-func (p *producer) StartAppAction(ctx context.Context) []*canvas.Circle {
+func (p *producer) StartAppAction(ctx context.Context) {
 	getCh, putCh := p.engine.Run(ctx)
 
 	state := <-getCh
 
-	// Initial cats positions
-	VMCat := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.DogSize, p.appConfig.ScaleEngineCoord)
-	cats := ConvertVMCatToCanvasCat(VMCat, p.appConfig.DogSize)
+	// Initial dogs positions
+	dogs := ConvertStateToViewDog(state)
+	p.app.Dogs = dogs
 	putCh <- state
-	colorCats := make([]api.Color, len(cats))
-	for i, c := range VMCat {
-		colorCats[i] = c.Color
-	}
 
-	catsUpdater := func() {
-		state := <-getCh
-		VMCatNext := ConvertStateToVMCat(state, p.appConfig.ScaleEngineCoord, p.appConfig.PaddingEngineCoord, p.appConfig.DogSize, p.appConfig.ScaleEngineCoord)
-		uiCats := ConvertVMCatToCanvasCat(VMCatNext, p.appConfig.DogSize)
+	dogsUpdater := func() {
+		<-p.app.NeedNext
 
-		for i, c := range VMCatNext {
-			VMCatNext[i].Color = c.Color
-		}
-
+		state = <-getCh
+		nextDogs := ConvertStateToViewDog(state)
 		putCh <- state
+
 		wg := sync.WaitGroup{}
-		//fmt.Println("ScaleEngine Coord", p.appConfig.ScaleEngineCoord)
-		for i, c := range uiCats {
-			wg.Add(2)
+		for i, d := range nextDogs {
+			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				//cats[i].Move(c.Position())
-				//cats[i].FillColor = c.FillColor
-				//cats[i].Refresh()
-				//fmt.Printf("Next postition %d cat = %f / %f\n", i, c.Position().X, c.Position().Y)
-				utils.AnimateCat(
-					cats[i].Position(),
-					c.Position(),
-					cats[i],
-					int32(p.chosenRadarSettings.UpdateTime.Milliseconds()),
-				)
-			}()
-			go func() {
-				defer wg.Done()
-				//fmt.Println(utils.ColorToRGBA(api.Red), utils.ColorToRGBA(api.Blue))
-				canvas.NewColorRGBAAnimation(ColorToRGBA(colorCats[i]), ColorToRGBA(VMCatNext[i].Color), p.chosenRadarSettings.UpdateTime, func(c color.Color) {
-					cats[i].FillColor = c
-					canvas.Refresh(cats[i])
-				}).Start()
-				colorCats[i] = VMCatNext[i].Color
+				dogs[i].UpdateDogMove(d, p.app.RadarSettings.UpdateTime)
+				dogs[i].Status = d.Status
 			}()
 		}
 		wg.Wait()
 	}
 
-	ticker := time.Tick(p.chosenRadarSettings.UpdateTime)
+	ticker := time.Tick(p.app.RadarSettings.UpdateTime)
 
-	withTicker(ctx, ticker, catsUpdater)
+	utils.WithTicker(ctx, ticker, dogsUpdater)
 
-	return cats
-}
-
-// TODO: move to external core package
-func withTicker(ctx context.Context, ticker <-chan time.Time, action func()) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-
-			case <-ticker:
-				action()
-			}
-		}
-	}()
+	return
 }

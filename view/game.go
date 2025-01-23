@@ -2,12 +2,12 @@ package view
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/PavlushaSource/Radar/resources"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -19,72 +19,73 @@ import (
 )
 
 var (
-	dogImageFight *ebiten.Image
-	dogImageHiss  *ebiten.Image
+	DogImageFight *ebiten.Image
+	DogImageHiss  *ebiten.Image
+	DogImageRun   *ebiten.Image
 	borderImage   *ebiten.Image
 )
 
+func NewImgFromResource(res []byte) *ebiten.Image {
+	img, _, err := image.Decode(bytes.NewReader(res))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return ebiten.NewImageFromImage(img)
+}
+
 func init() {
-	img, _, err := image.Decode(bytes.NewReader(resources.DogFight_png))
-	if err != nil {
-		log.Fatal(err)
-	}
-	dogImageFight = ebiten.NewImageFromImage(img)
-
-	img, _, err = image.Decode(bytes.NewReader(resources.DogHiss_png))
-	if err != nil {
-		log.Fatal(err)
-	}
-	dogImageHiss = ebiten.NewImageFromImage(img)
-
-	img, _, err = image.Decode(bytes.NewReader(resources.Border_png))
-	if err != nil {
-		log.Fatal(err)
-	}
-	borderImage = ebiten.NewImageFromImage(img)
+	DogImageFight = NewImgFromResource(resources.DogFight_png)
+	DogImageHiss = NewImgFromResource(resources.DogHiss_png)
+	DogImageRun = NewImgFromResource(resources.DogRun_png)
+	borderImage = NewImgFromResource(resources.Border_png)
 }
 
 type Application struct {
-	dogs  []*Dog
-	pause bool
+	Dogs     []*Dog
+	NeedNext chan struct{}
 
-	bg *ebiten.Image
+	AppConfig     *config.ApplicationConfig
+	RadarSettings *config.RadarSettings
 
+	cursor  utils.Cursor
+	bg      *ebiten.Image
+	Menu    *ebitenui.UI
 	borders []utils.Line
 
-	appConfig *config.ApplicationConfig
-
-	cursor utils.Cursor
-
-	Menu         *ebitenui.UI
-	textInputs   []*widget.TextInput // Хранение ссылок на текстовые поля
-	updateButton *widget.Button      // Кнопка "Update Text"
+	Pause       bool
+	BordersDraw bool
 
 	InMainMenu bool
+
+	cancelFunc context.CancelFunc
 }
 
 func NewApplication() *Application {
-	dogs := make([]*Dog, 0)
+	app := &Application{}
+	app.Dogs = make([]*Dog, 0)
 
-	for i := 0; i < dogCount; i++ {
-		dogs = append(dogs, NewDog(dogImageFight))
-	}
+	app.AppConfig = config.NewApplicationConfig()
+	app.RadarSettings = config.NewRadarSettings()
 
-	bg := ebiten.NewImage(1920, 1080)
-	bg.Fill(color.RGBA{R: 51, G: 232, B: 78, A: 0xff})
+	app.cursor = utils.NewCursor()
+	app.bg = NewBackground(app.AppConfig)
+	app.Menu = NewMenu(app)
+	app.borders = make([]utils.Line, 0)
 
-	game := &Application{}
-	game.bg = bg
-	game.borders = make([]utils.Line, 0)
-	game.dogs = dogs
-	game.Menu = NewUI(game)
-	game.appConfig = config.NewApplicationConfig()
+	app.InMainMenu = true
 
-	return game
+	return app
 }
 
-func (a *Application) Update() error {
+func (app *Application) ResetDragAndZoom() {
+	app.AppConfig.CamScaleTo = 1
+	app.AppConfig.CamScale = 1
+	app.AppConfig.CamX = 0
+	app.AppConfig.CamY = 0
+}
 
+func (app *Application) UpdateDragAndZoom() {
 	var scrollY float64
 	if ebiten.IsKeyPressed(ebiten.KeyC) || ebiten.IsKeyPressed(ebiten.KeyPageDown) {
 		scrollY = -0.25
@@ -98,89 +99,152 @@ func (a *Application) Update() error {
 			scrollY = 1
 		}
 	}
-	a.appConfig.CamScaleTo += scrollY * (a.appConfig.CamScaleTo / 7)
+	app.AppConfig.CamScaleTo += scrollY * (app.AppConfig.CamScaleTo / 7)
 
 	// Clamp target zoom level.
-	if a.appConfig.CamScaleTo < 0.01 {
-		a.appConfig.CamScaleTo = 0.01
-	} else if a.appConfig.CamScaleTo > 100 {
-		a.appConfig.CamScaleTo = 100
+	if app.AppConfig.CamScaleTo < 0.01 {
+		app.AppConfig.CamScaleTo = 0.01
+	} else if app.AppConfig.CamScaleTo > 100 {
+		app.AppConfig.CamScaleTo = 100
 	}
 
 	// Smooth zoom transition.
 	div := 10.0
-	if a.appConfig.CamScaleTo > a.appConfig.CamScale {
-		a.appConfig.CamScale += (a.appConfig.CamScaleTo - a.appConfig.CamScale) / div
-	} else if a.appConfig.CamScaleTo < a.appConfig.CamScale {
-		a.appConfig.CamScale -= (a.appConfig.CamScale - a.appConfig.CamScaleTo) / div
+	if app.AppConfig.CamScaleTo > app.AppConfig.CamScale {
+		app.AppConfig.CamScale += (app.AppConfig.CamScaleTo - app.AppConfig.CamScale) / div
+	} else if app.AppConfig.CamScaleTo < app.AppConfig.CamScale {
+		app.AppConfig.CamScale -= (app.AppConfig.CamScale - app.AppConfig.CamScaleTo) / div
 	}
 
 	// Pan camera via keyboard.
-	pan := 7.0 / a.appConfig.CamScale
+	pan := 7.0 / app.AppConfig.CamScale
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) || ebiten.IsKeyPressed(ebiten.KeyA) {
-		a.appConfig.CamX -= pan
+		app.AppConfig.CamX -= pan
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyRight) || ebiten.IsKeyPressed(ebiten.KeyD) {
-		a.appConfig.CamX += pan
+		app.AppConfig.CamX += pan
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyDown) || ebiten.IsKeyPressed(ebiten.KeyS) {
-		a.appConfig.CamY -= pan
+		app.AppConfig.CamY -= pan
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyUp) || ebiten.IsKeyPressed(ebiten.KeyW) {
-		a.appConfig.CamY += pan
+		app.AppConfig.CamY += pan
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
-		a.appConfig.CamScaleTo = 1
-		a.appConfig.CamScale = 1
-		a.appConfig.CamX = 0
-		a.appConfig.CamY = 0
+		app.ResetDragAndZoom()
+	}
+}
+
+func (app *Application) UpdateCursor() {
+	var mx, my int = ebiten.CursorPosition()
+	mx -= int(app.AppConfig.CamX * app.AppConfig.CamScale)
+	my += int(app.AppConfig.CamY * app.AppConfig.CamScale)
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if !app.cursor.Pressed {
+			app.cursor.Pressed = true
+			app.cursor.StartX, app.cursor.StartY = mx, my
+		}
+		app.cursor.EndX, app.cursor.EndY = mx, my
+	} else {
+		app.cursor.Pressed = false
+	}
+}
+
+func (app *Application) Update() error {
+	if app.InMainMenu {
+		err := app.UpdateMenu()
+		return err
 	}
 
-	var mx, my int = ebiten.CursorPosition()
-	//mouseX
-	mx -= int(a.appConfig.CamX * a.appConfig.CamScale)
-	my += int(a.appConfig.CamY * a.appConfig.CamScale)
-	//if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		fmt.Println(a.cursor.Pressed)
-		if !a.cursor.Pressed {
-			a.cursor.Pressed = true
-			a.cursor.StartX, a.cursor.StartY = mx, my
-		}
-		//bx, by := int(float64(borderImage.Bounds().Dx())*borderImgScale*a.camScale/1.75), int(float64(borderImage.Bounds().Dy())*borderImgScale*a.camScale/1.75)
-		//if a.cursor.x-(bx) <= mx && a.cursor.x+(bx) >= mx && a.cursor.y-(by) <= my && a.cursor.y+by >= my {
-		//} else {
-		//	//fmt.Println("MOUSE POS", mx, my)
-		//	a.cursor = Cursor{
-		//		x:       mx,
-		//		y:       my,
-		//		pressed: true,
-		//	}
-		//}
-		a.cursor.EndX, a.cursor.EndY = mx, my
-	} else {
-		a.cursor.Pressed = false
-	}
+	app.UpdateDragAndZoom()
+	app.UpdateCursor()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		a.pause = !a.pause
+		app.Pause = !app.Pause
 	}
 
-	if a.pause {
+	if app.Pause {
 		return nil
 	}
-	for _, d := range a.dogs {
-		d.Update()
+
+	flagGetNext := true
+	for _, d := range app.Dogs {
+		flagGetNext = flagGetNext && d.Update()
+	}
+	if flagGetNext {
+		app.NeedNext <- struct{}{}
 	}
 	return nil
 }
 
-func (a *Application) DrawBorder(screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-	scale := a.appConfig.CamScale
+func (app *Application) Draw(screen *ebiten.Image) {
+	if app.InMainMenu {
+		app.DrawMenu(screen)
+		return
+	}
 
-	for _, line := range a.borders {
+	//screen.Fill(color.RGBA{0xff, 0, 0, 0})
+	//cx, cy := ScreenWidth/2, ScreenHeight/2
+	target := screen
+	scale := app.AppConfig.CamScale
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
+	op.GeoM.Scale(scale, scale)
+	//op.GeoM.Translate(float64(cx), float64(cy))
+	target.DrawImage(app.bg, op)
+
+	if app.cursor.Pressed {
+		op.GeoM.Reset()
+		op.GeoM.Translate(-160, -160)
+		op.GeoM.Scale(0.1, 0.1)
+
+		//fmt.Println(scale)
+		//op.GeoM.Translate(-app.camX/scale, app.camY/scale)
+		//op.GeoM.Scale(scale, scale)
+
+		//fmt.Println(app.cursor.startY, app.cursor.pressed)
+		vector.StrokeLine(target, float32(app.cursor.StartX), float32(app.cursor.StartY), float32(app.cursor.EndX), float32(app.cursor.EndY), 3, color.RGBA{255, 0, 0, 64}, false)
+
+		//app.bg.DrawImage(borderImage, op)
+	} else {
+		app.borders = append(app.borders, utils.NewLine(app.cursor.StartX, app.cursor.StartY, app.cursor.EndX, app.cursor.EndY))
+
+	}
+
+	app.DrawBorder(target)
+
+	for _, d := range app.Dogs {
+
+		op.GeoM.Reset()
+
+		op.GeoM.Scale(DogImgScale, DogImgScale)
+		op.GeoM.Translate(float64(d.X), float64(d.Y))
+		op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
+
+		op.GeoM.Scale(scale, scale)
+
+		//op.GeoM.Translate(float64(cx), float64(cy))
+		//screen.DrawImage(DogImageFight, op)
+		d.Draw(target, op)
+	}
+
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\n", ebiten.ActualFPS()))
+
+	//screen.DrawImage(target, op)
+
+}
+
+func (app *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return app.AppConfig.WindowX, app.AppConfig.WindowY
+}
+
+func (app *Application) DrawBorder(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	scale := app.AppConfig.CamScale
+
+	for _, line := range app.borders {
 
 		dx := float64(line.EndX - line.StartX)
 		dy := float64(line.EndY - line.StartY)
@@ -203,11 +267,11 @@ func (a *Application) DrawBorder(screen *ebiten.Image) {
 
 			op.GeoM.Translate(centerX, centerY)
 
-			op.GeoM.Translate(a.appConfig.CamX, -a.appConfig.CamY)
+			op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 			op.GeoM.Scale(scale, scale)
 
 			screen.DrawImage(borderImage, op)
-			//a.bg.DrawImage(borderImage, op)
+			//app.bg.DrawImage(borderImage, op)
 			//vector.DrawFilledCircle(screen, float32(centerX), float32(centerY), float32(r), color.RGBA{0, 255, 0, 255}, false)
 		}
 		//currPosX := line.StartX
@@ -218,66 +282,8 @@ func (a *Application) DrawBorder(screen *ebiten.Image) {
 		//
 		//op.GeoM.Translate(float64(currPosX)/scale, float64(currPosY)/scale)
 		//
-		//op.GeoM.Translate(-a.camX/scale, a.camY/scale)
+		//op.GeoM.Translate(-app.camX/scale, app.camY/scale)
 		//op.GeoM.Scale(scale, scale)
 	}
 
-}
-
-func (a *Application) Draw(screen *ebiten.Image) {
-	//screen.Fill(color.RGBA{0xff, 0, 0, 0})
-	//cx, cy := ScreenWidth/2, ScreenHeight/2
-	target := screen
-	scale := a.appConfig.CamScale
-	op := &ebiten.DrawImageOptions{}
-
-	op.GeoM.Translate(a.appConfig.CamX, -a.appConfig.CamY)
-	op.GeoM.Scale(scale, scale)
-	//op.GeoM.Translate(float64(cx), float64(cy))
-	target.DrawImage(a.bg, op)
-
-	if a.cursor.Pressed {
-		op.GeoM.Reset()
-		op.GeoM.Translate(-160, -160)
-		op.GeoM.Scale(0.1, 0.1)
-
-		op.GeoM.Translate(float64(a.cursor.X)/scale, float64(a.cursor.Y)/scale)
-		//fmt.Println(scale)
-		//op.GeoM.Translate(-a.camX/scale, a.camY/scale)
-		//op.GeoM.Scale(scale, scale)
-
-		//fmt.Println(a.cursor.startY, a.cursor.pressed)
-		vector.StrokeLine(target, float32(a.cursor.StartX), float32(a.cursor.StartY), float32(a.cursor.EndX), float32(a.cursor.EndY), 3, color.RGBA{255, 0, 0, 64}, false)
-
-		//a.bg.DrawImage(borderImage, op)
-	} else {
-		a.borders = append(a.borders, utils.NewLine(a.cursor.StartX, a.cursor.StartY, a.cursor.EndX, a.cursor.EndY))
-
-	}
-
-	a.DrawBorder(target)
-
-	for _, d := range a.dogs {
-
-		op.GeoM.Reset()
-
-		op.GeoM.Scale(dogImgScale, dogImgScale)
-		op.GeoM.Translate(float64(d.x), float64(d.y))
-		op.GeoM.Translate(a.appConfig.CamX, -a.appConfig.CamY)
-
-		op.GeoM.Scale(scale, scale)
-
-		//op.GeoM.Translate(float64(cx), float64(cy))
-		//screen.DrawImage(dogImageFight, op)
-		d.Draw(target, op)
-	}
-
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\n", ebiten.ActualFPS()))
-
-	//screen.DrawImage(target, op)
-
-}
-
-func (a *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return a.appConfig.WindowX, a.appConfig.WindowY
 }
