@@ -18,7 +18,7 @@ type baseGeom struct {
 	distance        Distance
 	rnd             *rand.Rand
 	rndAsync        rnd.RndAsync
-	rndCounter      int32
+	rndCounter      int
 }
 
 // Height returns a height of the field
