@@ -1,7 +1,6 @@
 package rnd
 
 import (
-	"math"
 	"math/rand"
 	"time"
 )
@@ -21,7 +20,7 @@ type RndAsync interface {
 const num int = 5e6
 
 // Prime integer used in calcuation the index of the random value.
-const cf float64 = 1e9 + 7
+const cf int = 1e9 + 7
 
 // Implementation of RndAsync.
 type rndAsync struct {
@@ -34,7 +33,10 @@ type rndAsync struct {
 //
 // Implementation of RndAsync.Float64ByInt.
 func (rndAsync *rndAsync) Float64ByInt(x int) float64 {
-	idx := int(math.Abs(float64(x)*cf)) % num
+	idx := (x * cf) % num
+	if idx < 0 {
+		idx = -idx
+	}
 	return rndAsync.precalc[idx]
 }
 
@@ -43,8 +45,7 @@ func (rndAsync *rndAsync) Float64ByInt(x int) float64 {
 //
 // Implementation of RndAsync.Float64ByFloat64.
 func (rndAsync *rndAsync) Float64ByFloat64(x float64) float64 {
-	idx := int(math.Abs(x*cf)) % num
-	return rndAsync.precalc[idx]
+	return rndAsync.Float64ByInt(int(x))
 }
 
 // NewRndCore creates a new object, that inherits the RndAsync interface.
