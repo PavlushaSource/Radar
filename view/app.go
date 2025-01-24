@@ -291,7 +291,7 @@ func (app *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, sc
 }
 
 func (app *Application) DrawHelpInfo(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\nReset camera [R]\nDraw borders [G]", ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\nReset camera [R]\nDraw borders [G]\nPause radar [SPACE]", ebiten.ActualFPS()))
 }
 
 func (app *Application) AddBoundaryField() {
