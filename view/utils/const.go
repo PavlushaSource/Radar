@@ -28,6 +28,6 @@ const (
 
 func NewBackground(appConfig *config.ApplicationConfig) *ebiten.Image {
 	bg := ebiten.NewImage(appConfig.WindowX, appConfig.WindowY)
-	bg.Fill(color.RGBA{R: 51, G: 232, B: 78, A: 0xff})
+	bg.Fill(color.RGBA{R: 102, G: 255, B: 102, A: 0xff})
 	return bg
 }

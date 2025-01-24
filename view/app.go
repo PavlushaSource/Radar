@@ -6,6 +6,7 @@ import (
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
 	"github.com/PavlushaSource/Radar/view/utils"
+	"github.com/PavlushaSource/Radar/viewModel"
 	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -38,6 +39,7 @@ type Application struct {
 func NewApplication() *Application {
 	app := &Application{}
 	app.Dogs = make([]*api.Dog, 0)
+	app.NeedNext = make(chan struct{})
 
 	app.AppConfig = config.NewApplicationConfig()
 	app.RadarSettings = config.NewRadarSettings()
@@ -46,6 +48,7 @@ func NewApplication() *Application {
 	app.bg = utils.NewBackground(app.AppConfig)
 	app.Menu = NewMenu(app)
 	app.Borders = make([]utils.Line, 0)
+	app.AddBoundaryField()
 
 	app.InMainMenu = true
 
@@ -61,7 +64,7 @@ func (app *Application) ResetDragAndZoom() {
 
 func (app *Application) UpdateDragAndZoom() {
 	var scrollY float64
-	if ebiten.IsKeyPressed(ebiten.KeyC) || ebiten.IsKeyPressed(ebiten.KeyPageDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyQ) || ebiten.IsKeyPressed(ebiten.KeyPageDown) {
 		scrollY = -utils.ScaleDiff
 	} else if ebiten.IsKeyPressed(ebiten.KeyE) || ebiten.IsKeyPressed(ebiten.KeyPageUp) {
 		scrollY = utils.ScaleDiff
@@ -121,7 +124,8 @@ func (app *Application) UpdateCursor() {
 		}
 		app.cursor.EndX, app.cursor.EndY = mx, my
 	} else if app.cursor.EndX != 0 && app.cursor.EndY != 0 && app.cursor.StartX != 0 && app.cursor.StartY != 0 {
-		app.Borders = append(app.Borders, utils.NewLine(app.cursor.StartX, app.cursor.StartY, app.cursor.EndX, app.cursor.EndY))
+		app.Borders = append(app.Borders, utils.NewLine(app.AppConfig.WindowX, app.AppConfig.WindowY,
+			app.cursor.StartX, app.cursor.StartY, app.cursor.EndX, app.cursor.EndY))
 		app.cursor.Reset()
 	}
 }
@@ -137,16 +141,21 @@ func (app *Application) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
 		if app.BordersDraw {
-			fmt.Println(app.Borders)
-		} else {
-			////app.CancelFunc()
-			//select {
-			//case _, _ = <-app.NeedNext:
-			//default:
-			//	app.NeedNext <- struct{}{}
-			//}
+			app.CancelFunc()
 
-			//viewModel.StartApp(app)
+			ctx, cancel := context.WithCancel(context.Background())
+			app.CancelFunc = cancel
+
+			go func() {
+				select {
+				case _, _ = <-app.NeedNext:
+				default:
+					app.NeedNext <- struct{}{}
+				}
+			}()
+
+			prod := viewModel.NewProducer(app.RadarSettings, app.AppConfig, app.NeedNext, app.Borders)
+			app.Dogs = prod.StartAppAction(ctx)
 		}
 
 		app.BordersDraw = !app.BordersDraw
@@ -165,10 +174,12 @@ func (app *Application) Update() error {
 
 	flagGetNext := true
 	for _, d := range app.Dogs {
-		flagGetNext = flagGetNext && d.Update()
+		flagGetNext = d.Update() && flagGetNext
 	}
 	if flagGetNext {
-		//app.NeedNext <- struct{}{}
+		go func() {
+			app.NeedNext <- struct{}{}
+		}()
 	}
 	return nil
 }
@@ -233,11 +244,13 @@ func (app *Application) Draw(screen *ebiten.Image) {
 		return
 	}
 
+	screen.Fill(color.RGBA{R: 204, G: 255, B: 204, A: 255})
 	if app.BordersDraw {
 		app.ResetDragAndZoom()
 		app.DrawBackground(screen)
 		app.DrawLineBorder(screen)
 		app.DrawBorder(screen)
+		app.DrawHelpInfo(screen)
 		return
 	}
 
@@ -249,11 +262,6 @@ func (app *Application) Draw(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 	scale := app.AppConfig.CamScale
-	//target := screen
-	//
-	//op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
-	//op.GeoM.Scale(scale, scale)
-	//target.DrawImage(app.bg, op)
 
 	// draw dogs
 	dogImgWidth, dogImgHeight := utils.DogImageRun.Bounds().Dx(), utils.DogImageRun.Bounds().Dy()
@@ -266,11 +274,12 @@ func (app *Application) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(d.X, d.Y)
 		op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 		op.GeoM.Scale(scale, scale)
-
 		d.Draw(screen, op)
 	}
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\n", ebiten.ActualFPS()))
+	//app.DrawBoundaryField(screen, )
+	app.DrawHelpInfo(screen)
+
 }
 
 func (app *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -279,4 +288,16 @@ func (app *Application) Layout(outsideWidth, outsideHeight int) (screenWidth, sc
 	} else {
 		return app.AppConfig.WindowX, app.AppConfig.WindowY
 	}
+}
+
+func (app *Application) DrawHelpInfo(screen *ebiten.Image) {
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("ACTUAL FPS %f\nReset camera [R]\nDraw borders [G]", ebiten.ActualFPS()))
+}
+
+func (app *Application) AddBoundaryField() {
+	app.Borders = append(app.Borders, utils.Line{EndX: float64(app.AppConfig.WindowX)})
+	app.Borders = append(app.Borders, utils.Line{EndY: float64(app.AppConfig.WindowY)})
+
+	app.Borders = append(app.Borders, utils.Line{StartX: float64(app.AppConfig.WindowX), EndX: float64(app.AppConfig.WindowX), EndY: float64(app.AppConfig.WindowY)})
+	app.Borders = append(app.Borders, utils.Line{StartY: float64(app.AppConfig.WindowY), EndX: float64(app.AppConfig.WindowX), EndY: float64(app.AppConfig.WindowY)})
 }
