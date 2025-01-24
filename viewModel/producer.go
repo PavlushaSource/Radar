@@ -65,10 +65,11 @@ func (p *producer) StartAppAction(ctx context.Context) []*api.Dog {
 	// Initial dogs positions
 	dogs := ConvertStateToViewDog(state)
 	putCh <- state
+	go func() {
+		p.next <- struct{}{}
+	}()
 
 	dogsUpdater := func() {
-		<-p.next
-
 		state = <-getCh
 		nextDogs := ConvertStateToViewDog(state)
 		putCh <- state
@@ -88,6 +89,5 @@ func (p *producer) StartAppAction(ctx context.Context) []*api.Dog {
 	ticker := time.Tick(p.radarSettings.UpdateTime)
 
 	utils.WithTicker(ctx, ticker, dogsUpdater)
-
 	return dogs
 }

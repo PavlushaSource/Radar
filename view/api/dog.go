@@ -19,8 +19,8 @@ type Dog struct {
 }
 
 func calculateDogSpeed(x_a, x_b, y_a, y_b float64, updateTime time.Duration) (float64, float64) {
-	speedX := (x_b - x_a) / (updateTime.Seconds() * utils.Fps)
-	speedY := (y_b - y_a) / (updateTime.Seconds() * utils.Fps)
+	speedX := ((x_b - x_a) * 1.2) / (updateTime.Seconds() * utils.Fps)
+	speedY := ((y_b - y_a) * 1.2) / (updateTime.Seconds() * utils.Fps)
 
 	return speedX, speedY
 }
@@ -51,8 +51,9 @@ func (d *Dog) Update() bool {
 	if d.Y+d.SpeedY <= config.WindowH && d.Y+d.SpeedY >= 0 {
 		d.Y += d.SpeedY
 	}
-
 	if math.Abs(d.X-d.XNext) < geom.Eps || math.Abs(d.Y-d.YNext) < geom.Eps {
+		d.SpeedX = 0
+		d.SpeedY = 0
 		return true
 	}
 	return false

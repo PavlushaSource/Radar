@@ -16,7 +16,6 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"image/color"
 	"log"
-	"time"
 )
 
 const (
@@ -223,16 +222,14 @@ func NewMenu(app *Application) *ebitenui.UI {
 		resError = utils.SaveError(resError, app.RadarSettings.SetHissingRadius(InputFields[hissingRadiusInput].GetText()))
 
 		if resError != nil {
-			fmt.Println("Error:", resError)
+			fmt.Println(resError)
 			return
 		}
 		app.InMainMenu = false
 
-		ebiten.SetWindowTitle("Собака съела товар")
+		ebiten.SetWindowTitle("Dog radar")
 		ebiten.SetWindowSize(app.AppConfig.WindowX, app.AppConfig.WindowY)
 
-		fmt.Println("WORKK!!!")
-		time.Sleep(2 * time.Second)
 		ctx, cancel := context.WithCancel(context.Background())
 
 		app.CancelFunc = cancel
