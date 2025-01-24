@@ -24,11 +24,21 @@ func (geom *simpleGeom) MovePoint(point Point) {
 
 // newSimpleRandomPoint generates new random point, taking into account the coordinates of the old point
 func (geom *simpleGeom) newSimpleRandomPoint(point Point) Point {
-	x := geom.rndAsync.Float64ByFloat64(point.X()*float64(geom.rndCounter)) * geom.width
+	x := (geom.rndAsync.Float64ByInt(geom.rndCounter)-0.5)*geom.width + point.X()
 	geom.IncrementRndCounter()
+	if x < 0 {
+		x = 0
+	} else if x > geom.width {
+		x = float64(geom.width)
+	}
 
-	y := geom.rndAsync.Float64ByFloat64(point.Y()*float64(geom.rndCounter)) * geom.height
+	y := (geom.rndAsync.Float64ByInt(geom.rndCounter)-0.5)*geom.height + point.Y()
 	geom.IncrementRndCounter()
+	if y < 0 {
+		y = 0
+	} else if y > geom.height {
+		y = float64(geom.height)
+	}
 
 	return NewPoint(x, y)
 }
