@@ -13,6 +13,9 @@ build:
 	go build -o app ./cmd/desktop/Desktop.go
 
 test:
+	go test ./...
+
+test-coverage:
 	go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 clear:
