@@ -79,6 +79,6 @@ func NewRadarSettings() *RadarSettings {
 		HissingRadius:  200,
 		BufferSize:     16,
 		GeometryType:   Simple,
-		MaxRadiusMove:  50,
+		MaxRadiusMove:  5,
 	}
 }

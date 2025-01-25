@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/PavlushaSource/Radar/model/geom"
 	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/img"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"math"
@@ -66,11 +67,11 @@ func (d *Dog) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 func (d *Dog) StatusToImg() *ebiten.Image {
 	switch *d.Status {
 	case utils.Run:
-		return utils.DogImageRun
+		return img.DogImageRun
 	case utils.Fight:
-		return utils.DogImageFight
+		return img.DogImageFight
 	case utils.Hiss:
-		return utils.DogImageHiss
+		return img.DogImageHiss
 	}
 	return nil
 }

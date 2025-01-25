@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PavlushaSource/Radar/view/api"
 	"github.com/PavlushaSource/Radar/view/config"
+	"github.com/PavlushaSource/Radar/view/img"
 	"github.com/PavlushaSource/Radar/view/utils"
 	"github.com/PavlushaSource/Radar/viewModel"
 	"github.com/ebitenui/ebitenui"
@@ -148,7 +149,7 @@ func (app *Application) Update() error {
 
 			go func() {
 				select {
-				case _, _ = <-app.NeedNext:
+				case <-app.NeedNext:
 				default:
 					app.NeedNext <- struct{}{}
 				}
@@ -187,8 +188,8 @@ func (app *Application) Update() error {
 func (app *Application) DrawLineBorder(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
-	moveToCenterX := float64(utils.BorderImage.Bounds().Dx()) / 2 * utils.BorderImgScale
-	moveToCenterY := float64(utils.BorderImage.Bounds().Dy()) / 2 * utils.BorderImgScale
+	moveToCenterX := float64(img.BorderImage.Bounds().Dx()) / 2 * utils.BorderImgScale
+	moveToCenterY := float64(img.BorderImage.Bounds().Dy()) / 2 * utils.BorderImgScale
 
 	if app.cursor.Pressed {
 		op.GeoM.Reset()
@@ -208,13 +209,13 @@ func (app *Application) DrawBorder(screen *ebiten.Image) {
 		dy := line.EndY - line.StartY
 		length := math.Hypot(dx, dy)
 		dirX, dirY := dx/length, dy/length
-		r := float64(utils.BorderImage.Bounds().Dx()) * utils.BorderImgScale / 2
+		r := float64(img.BorderImage.Bounds().Dx()) * utils.BorderImgScale / 2
 		step := r * 1.5
 
 		for i := 0.0; i < length; i += step {
 			op.GeoM.Reset()
 
-			op.GeoM.Translate(float64(-utils.BorderImage.Bounds().Dx()/2), float64(-utils.BorderImage.Bounds().Dx()/2))
+			op.GeoM.Translate(float64(-img.BorderImage.Bounds().Dx()/2), float64(-img.BorderImage.Bounds().Dx()/2))
 			op.GeoM.Scale(utils.BorderImgScale, utils.BorderImgScale)
 
 			centerX := line.StartX + dirX*i
@@ -224,7 +225,7 @@ func (app *Application) DrawBorder(screen *ebiten.Image) {
 			op.GeoM.Translate(app.AppConfig.CamX, -app.AppConfig.CamY)
 			op.GeoM.Scale(scale, scale)
 
-			screen.DrawImage(utils.BorderImage, op)
+			screen.DrawImage(img.BorderImage, op)
 		}
 	}
 }
@@ -264,7 +265,7 @@ func (app *Application) Draw(screen *ebiten.Image) {
 	scale := app.AppConfig.CamScale
 
 	// draw dogs
-	dogImgWidth, dogImgHeight := utils.DogImageRun.Bounds().Dx(), utils.DogImageRun.Bounds().Dy()
+	dogImgWidth, dogImgHeight := img.DogImageRun.Bounds().Dx(), img.DogImageRun.Bounds().Dy()
 	for _, d := range app.Dogs {
 		op.GeoM.Reset()
 
