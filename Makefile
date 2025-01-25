@@ -13,13 +13,7 @@ build:
 	go build -o app ./cmd/desktop/Desktop.go
 
 test:
-	go test ./... -v
-
-fmt:
-	@echo "TODO"
-
-debug:
-	go run -tags debug ./cmd/desktop/Desktop.go
+	go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 clear:
 	@rm app
