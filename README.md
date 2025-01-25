@@ -40,13 +40,18 @@ Dogs Radar - инсутремент для симуляции взаимодей
 
 ## Демонстрация работы приложения
 
+### Выбор параметров
+
+![image](https://github.com/user-attachments/assets/5c39ae80-02db-486f-b71f-d3cc5f000b9e)
+
+
 ### Корректная работа с границами
 
-![border](https://github.com/user-attachments/assets/ad20a8e6-b099-4e2f-8050-1fe767946242)
+![borderdAndDogs](https://github.com/user-attachments/assets/2d88d783-cf8a-4ce0-a698-3f4b50c44989)
 
 ### Демонстрация на большом количестве собак
 
-![highLoadV2](https://github.com/user-attachments/assets/7ef28ab2-f944-4065-a23d-fc7489671bb3)
+![muchDogs](https://github.com/user-attachments/assets/e86c3993-877e-4d7a-8ffb-20ddb7e3fa90)
 
 ## Запуск приложения
 
