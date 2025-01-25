@@ -86,8 +86,8 @@ func (p *producer) StartAppAction(ctx context.Context) []*api.Dog {
 		wg.Wait()
 	}
 
-	ticker := time.Tick(p.radarSettings.UpdateTime)
+	ticker := time.NewTicker(p.radarSettings.UpdateTime)
 
-	utils.WithTicker(ctx, ticker, dogsUpdater)
+	utils.WithTicker(ctx, ticker.C, dogsUpdater)
 	return dogs
 }

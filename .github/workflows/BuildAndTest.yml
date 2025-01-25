@@ -1,0 +1,64 @@
+name: BuildAndTest
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        go: [ '1.23.x' ]
+    name: Test with Go ${{ matrix.go }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      DISPLAY: ':99.0'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Git
+        run: |
+          # See actions/checkout#135
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
+
+      - name: Xvfb
+        if: runner.os == 'Linux'
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+      - name: go vet (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          go vet ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run staticcheck
+        run: staticcheck ./...
+
+      - name: Build
+        run: make build
+
+      - name: go test (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          go test -shuffle=on -v -p=1 ./...
+
+
+

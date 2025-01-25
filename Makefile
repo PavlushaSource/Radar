@@ -10,7 +10,7 @@ run:
 	go run ./cmd/desktop/desktop.go
 
 build:
-	go build -o app ./cmd/desktop/Desktop.go
+	go build -o app ./cmd/desktop/desktop.go
 
 test:
 	go test ./...
